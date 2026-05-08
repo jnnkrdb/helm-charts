@@ -1,0 +1,65 @@
+# .github/workflows/pr-comment.yml
+name: PR Chart Diff
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Install helm-diff
+        run: helm plugin install https://github.com/databus23/helm-diff --verify=false
+
+      - name: Generate diff
+        id: diff
+        run: |
+          # Get changed charts
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^charts/' | cut -d'/' -f2 | sort -u)
+          
+          DIFF=""
+          for chart in $CHANGED; do
+            if [ -d "charts/$chart" ]; then
+              echo "Generating diff for $chart"
+              
+              # Checkout main version
+              git show origin/main:charts/$chart/Chart.yaml > /tmp/main-chart.yaml 2>/dev/null || continue
+              
+              # Generate diff
+              CHART_DIFF=$(helm template test "charts/$chart" 2>/dev/null | head -100)
+              DIFF+=$(printf '\n### %s\n```yaml\n%s\n```\n' "$chart" "$CHART_DIFF")
+              
+              #DIFF="$DIFF\n### $chart\n```yaml\n$CHART_DIFF\n```\n"
+            fi
+          done
+          
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        env:
+          DIFF: ${{ steps.diff.outputs.diff }}
+        with:
+          script: |
+            const diff = process.env.DIFF || '';
+            if (diff.trim()) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## Chart Template Preview\n\n${diff}`
+              });
+            }

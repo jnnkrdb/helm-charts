@@ -1,0 +1,55 @@
+# .github/workflows/version-bump.yml
+name: Version Bump
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  bump:
+    if: github.event.label.name == 'version:patch' || github.event.label.name == 'version:minor' || github.event.label.name == 'version:major'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Determine bump type
+        id: bump
+        run: |
+          case "${{ github.event.label.name }}" in
+            version:patch) echo "type=patch" >> $GITHUB_OUTPUT ;;
+            version:minor) echo "type=minor" >> $GITHUB_OUTPUT ;;
+            version:major) echo "type=major" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Bump versions
+        run: |
+          # Find changed charts
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^charts/' | cut -d'/' -f2 | sort -u)
+          
+          for chart in $CHANGED; do
+            if [ -f "charts/$chart/Chart.yaml" ]; then
+              CURRENT=$(grep '^version:' charts/$chart/Chart.yaml | awk '{print $2}')
+              IFS='.' read -r major minor patch <<< "$CURRENT"
+              
+              case "${{ steps.bump.outputs.type }}" in
+                patch) NEW="$major.$minor.$((patch + 1))" ;;
+                minor) NEW="$major.$((minor + 1)).0" ;;
+                major) NEW="$((major + 1)).0.0" ;;
+              esac
+              
+              sed -i "s/^version: .*/version: $NEW/" charts/$chart/Chart.yaml
+              echo "Bumped $chart from $CURRENT to $NEW"
+            fi
+          done
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add charts/*/Chart.yaml
+          git commit -m "chore: bump chart versions [${{ steps.bump.outputs.type }}]"
+          git push
