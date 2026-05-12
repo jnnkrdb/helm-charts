@@ -144,7 +144,7 @@ jobs:
             fi
             if [ -d "$chart/$CHART_POLICIES_DIR" ]; then
               echo "Testing policies for $chart"
-              helm template test "$chart" | conftest test - --policy "$chart/$CHART_POLICIES_DIR"
+              helm template test "$chart" | conftest test - --policy "$chart$CHART_POLICIES_DIR"
             fi
           done
 
