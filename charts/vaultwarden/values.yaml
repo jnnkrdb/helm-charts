@@ -1,0 +1,224 @@
+# --------------------------------------------------------------------------------------------------
+# GLOBAL CONFIGURATION
+global:
+  imagePullSecrets: []
+  imagePullPolicy: null
+  imageRegistry: null
+  storageClassName: null
+  ingressClassName: null
+  labels: {}
+  annotations: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# GENERAL CONFIGURATION
+labels: {}
+annotations: {}
+extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# IMAGE CONFIGURATION
+images:
+  vaultwarden:
+    registry: docker.io
+    repository: vaultwarden/server
+    tag: 1.34.3
+    digest: null
+    imagePullPolicy: Always
+    imagePullSecrets: []
+
+# --------------------------------------------------------------------------------------------------
+# WORKLOAD CONFIGURATION
+workload:
+  annotations: {}
+  labels: {}
+  # supports either Deployment, StatefulSet or DaemonSet
+  kind: Deployment
+  revisionHistoryLimit: 1
+  replicaCount: 1
+  minReadySeconds: 10
+  serviceName: null
+  podManagementPolicy: null
+  persistentVolumeClaimRetentionPolicy: null
+  progressDeadlineSeconds: null
+  volumeClaimTemplates: []
+  updateStrategy: {}
+
+# --------------------------------------------------------------------------------------------------
+# POD CONFIGURATION
+pod:
+  # ------------- more advanced configs
+  # Scheduling constraints
+  affinity: {}
+  tolerations: []
+  nodeSelector:
+    kubernetes.io/os: linux
+
+  # Network
+  hostNetwork: null
+  dnsPolicy: null
+  dnsConfig: {}
+  hostAliases: []
+
+  nodeName: null
+  hostname: null
+  subdomain: null
+  automountServiceAccountToken: null
+  terminationGracePeriodSeconds: null
+
+  # Pod-level security context (applies to all containers unless container-level overrides)
+  securityContext: {}
+
+  # Runtime, priority, scheduler
+  runtimeClassName: null
+  priorityClassName: null
+  schedulerName: null
+
+  # Process & service-related settings
+  shareProcessNamespace: null
+  enableServiceLinks: null
+
+  # ------------- more frequently used configs
+  labels: {}
+  annotations: {}
+  imagePullSecrets: []
+  initContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  sidecarContainers: []
+  extraEnvs: []
+  extraEnvFrom: []
+
+# --------------------------------------------------------------------------------------------------
+# CONTAINER CONFIGURATION
+containers:
+  vaultwarden:
+    command: []
+    args: []
+    workingDir: null
+    resources:
+      requests:
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    securityContext: {}
+    extraEnvs: []
+    extraEnvFrom: []
+    extraVolumeMounts: []
+    startupProbe:
+      httpGet:
+        path: /
+        port: http
+      timeoutSeconds: 1
+      periodSeconds: 5
+      successThreshold: 1
+      failureThreshold: 30
+    livenessProbe:
+      httpGet:
+        path: /
+        port: http
+      timeoutSeconds: 1
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 10
+    readinessProbe:
+      httpGet:
+        path: /
+        port: http
+      timeoutSeconds: 1
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 3
+
+# --------------------------------------------------------------------------------------------------
+# SERVICE CONFIGURATION
+service:
+  annotations: {}
+  labels: {}
+  type: ClusterIP
+  clusterIP: null
+  ports:
+    http:
+      port: 80
+      protocol: TCP
+      nodePort: null
+      hostPort: null
+    websocket:
+      port: 3012
+      protocol: TCP
+      nodePort: null
+      hostPort: null
+  publishNotReadyAddresses: null
+  ipFamilyPolicy: null
+  ipFamilies: []
+
+# --------------------------------------------------------------------------------------------------
+# INGRESS CONFIGURATION
+ingress:
+  enabled: false
+  labels: {}
+  annotations: {}
+  ingressClassName: null
+  host: vaultwarden.example.com
+  tls:
+    enabled: false
+    secretName: null
+
+# --------------------------------------------------------------------------------------------------
+# PERSISTENCE CONFIGURATION
+persistence:
+  enabled: false
+  useHostpath: false
+  mountPath: /data
+  pvc:
+    annotations: {}
+    labels: {}
+    accessModes:
+    - ReadWriteOnce
+    size: 10Gi
+    storageClassName: null
+    volumeName: null
+  hostPath:
+    path: /var/tmp/vaultwarden
+    type: null
+
+# --------------------------------------------------------------------------------------------------
+# PDB CONFIGURATION
+pdb:
+  enabled: false
+  annotations: {}
+  labels: {}
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  minAvailable: null
+  maxUnavailable: 1
+
+# --------------------------------------------------------------------------------------------------
+# HORIZONTAL POD AUTOSCALER CONFIGURATION
+hpa:
+  annotations: {}
+  labels: {}
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+
+# --------------------------------------------------------------------------------------------------
+# RBAC CONFIGURATION
+rbac:
+  serviceAccount:
+    annotations: {}
+    labels: {}
+    automountServiceAccountToken: null
