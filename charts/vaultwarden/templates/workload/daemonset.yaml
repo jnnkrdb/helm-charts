@@ -39,11 +39,17 @@ spec:
     metadata:
       annotations:
         {{- include "vaultwarden.keyValues" ( 
-            dict "kvs" ( list $pod.annotations) ) | nindent 8 }}
+            dict "kvs" ( list $global.annotations 
+                              $main.annotations 
+                              $wl.annotations
+                              $pod.annotations) ) | nindent 8 }}
       labels: 
         {{- include "vaultwarden.selectorLabels" . | nindent 8 }}
         {{- include "vaultwarden.keyValues" ( 
-            dict "kvs" ( list $pod.labels) ) | nindent 8 }}
+            dict "kvs" ( list $global.labels 
+                              $main.labels 
+                              $wl.labels
+                              $pod.labels) ) | nindent 8 }}
     spec:
       {{- include "vaultwarden.pod" . | nindent 6 }}
 {{- end -}}

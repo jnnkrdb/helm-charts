@@ -33,8 +33,7 @@ spec:
                         dict "items" ( list $global.ingressClassName 
                                             $ing.ingressClassName )) }}
   rules:
-    - host: {{ $ing.host }}
-      http:
+    - http:
         paths:
           - path: /notifications/hub
             pathType: ImplementationSpecific
@@ -50,4 +49,7 @@ spec:
                 name: {{ include "vaultwarden.fullname" . }}
                 port:
                   name: http
+      {{- with $ing.host }}
+      host: {{ . | quote }}
+      {{- end }}
 {{- end -}}

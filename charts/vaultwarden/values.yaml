@@ -24,7 +24,7 @@ images:
   vaultwarden:
     registry: docker.io
     repository: vaultwarden/server
-    tag: 1.34.3
+    tag: 1.36.0
     digest: null
     imagePullPolicy: Always
     imagePullSecrets: []
@@ -44,7 +44,8 @@ workload:
   persistentVolumeClaimRetentionPolicy: null
   progressDeadlineSeconds: null
   volumeClaimTemplates: []
-  updateStrategy: {}
+  updateStrategy:
+    type: Recreate
 
 # --------------------------------------------------------------------------------------------------
 # POD CONFIGURATION
@@ -180,6 +181,7 @@ persistence:
     size: 10Gi
     storageClassName: null
     volumeName: null
+    volumeMode: null
   hostPath:
     path: /var/tmp/vaultwarden
     type: null
@@ -207,13 +209,13 @@ hpa:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50
+        averageUtilization: 80
   - type: Resource
     resource:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 50
+        averageUtilization: 80
 
 # --------------------------------------------------------------------------------------------------
 # RBAC CONFIGURATION

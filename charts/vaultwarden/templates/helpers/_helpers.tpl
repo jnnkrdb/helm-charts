@@ -75,7 +75,7 @@ Usage:
 {{- $kvs := .kvs -}}
 {{- range $kvs -}}
 {{- if . -}}
-{{- . | toYaml -}}
+{{- . | toYaml | nindent 0 -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

@@ -30,11 +30,16 @@ spec:
   resources:
     requests:
       storage: {{ $pvc.size | quote }}
-  storageClassName: {{ include "vaultwarden.firstOf" (
-                        dict "items" ( list $global.storageClassName 
-                                            $pvc.storageClassName )) }}
+  {{- with (include "vaultwarden.firstOf" (
+            dict "items" ( list $global.storageClassName 
+                                $pvc.storageClassName ))) }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
   {{- with $pvc.volumeName }}
   volumeName: {{ . | quote }}
+  {{- end }}
+  {{- with $pvc.volumeMode }}
+  volumeMode: {{ . | quote }}
   {{- end }}
 {{- end -}}
 {{- end -}}

@@ -10,17 +10,19 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: {{ include "vaultwarden.fullname" . }}
-  labels:
-    {{- include "vaultwarden.defaultLabels" . | nindent 4 }}
-    {{- include "vaultwarden.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $main.labels 
-                          $wl.labels) ) | nindent 4 }}
   annotations:
     {{- include "vaultwarden.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $main.annotations 
-                          $wl.annotations) ) | nindent 4 }}
+                          $wl.annotations
+                          $pod.annotations) ) | nindent 4 }}
+  labels: 
+    {{- include "vaultwarden.selectorLabels" . | nindent 4 }}
+    {{- include "vaultwarden.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $main.labels 
+                          $wl.labels
+                          $pod.labels) ) | nindent 4 }}
 spec:
   {{- include "vaultwarden.pod" . | nindent 2 }}
 {{- end -}}
