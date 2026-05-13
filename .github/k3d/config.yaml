@@ -1,0 +1,20 @@
+---
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: helmcharts
+servers: 1
+agents: 2
+kubeAPI:
+  host: "localhost"
+  hostIP: "127.0.0.1"
+  hostPort: "6445"
+image: docker.io/rancher/k3s:v1.31.5-k3s1
+#subnet: "172.28.0.0/16"
+options:
+  k3d:
+    wait: true
+    timeout: "60s"
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
