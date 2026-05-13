@@ -1,0 +1,45 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v -}}
+{{- $p := $main.persistence -}}
+
+{{- if $p.enabled -}}
+{{- if not $p.useHostpath -}}
+{{- $pvc := $p.pvc -}}
+--- # --------------------------------------------------------------------------------- PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "vaultwarden.fullname" . }}-data
+  labels:
+    {{- include "vaultwarden.defaultLabels" . | nindent 4 }}
+    {{- include "vaultwarden.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $main.labels 
+                          $pvc.labels) ) | nindent 4 }}
+  annotations:
+    {{- include "vaultwarden.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $main.annotations 
+                          $pvc.annotations) ) | nindent 4 }}
+spec:
+  {{- with $pvc.accessModes }}
+  accessModes:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $pvc.size | quote }}
+  {{- with (include "vaultwarden.firstOf" (
+            dict "items" ( list $global.storageClassName 
+                                $pvc.storageClassName ))) }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  {{- with $pvc.volumeName }}
+  volumeName: {{ . | quote }}
+  {{- end }}
+  {{- with $pvc.volumeMode }}
+  volumeMode: {{ . | quote }}
+  {{- end }}
+{{- end -}}
+{{- end -}}

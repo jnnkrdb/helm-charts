@@ -37,6 +37,8 @@ jobs:
   trivy:
     name: Trivy Scan
     runs-on: ubuntu-latest
+    permissions:
+      security-events: read
     steps:
       - uses: actions/checkout@v6
 
