@@ -1,13 +1,13 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
 {{- $main := $v.webhook -}}
-{{- $sa := $main.rbac.serviceAccount -}}
+{{- $svc := $main.service -}}
 
---- # --------------------------------------------------------------------------------- ServiceAccount
+--- # --------------------------------------------------------------------------------- ConfigMap
 apiVersion: v1
-kind: ServiceAccount
+kind: ConfigMap
 metadata:
-  name: sa-{{ include "certmanager.fullname" . }}-webhook
+  name: {{ include "certmanager.fullname" . }}-webhook
   labels:
     app: webhook
     {{- include "certmanager.defaultLabels" . | nindent 4 }}
@@ -15,13 +15,10 @@ metadata:
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels
-                          $sa.labels ) ) | nindent 4 }}
+                          $svc.labels) ) | nindent 4 }}
   annotations:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations
-                          $sa.annotations ) ) | nindent 4 }}
-{{- with $sa.automountServiceAccountToken }}
-automountServiceAccountToken: {{ . }}
-{{- end }}
+                          $svc.annotations) ) | nindent 4 }}

@@ -1,17 +1,17 @@
 {{/*
 Pod Spec
 */}}
-{{- define "cainjector.pod" -}}
+{{- define "webhook.pod" -}}
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.cainjector -}}
-{{- $img := $v.images.cainjector -}}
+{{- $main := $v.webhook -}}
+{{- $img := $v.images.webhook -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
-{{- $ctr := $main.containers.cainjector -}}
+{{- $ctr := $main.containers.webhook -}}
 
 {{- include "certmanager.podSpec" ( dict "podSpec" $pod ) }}
-serviceAccountName: sa-{{ include "certmanager.fullname" . }}-cainjector
+serviceAccountName: sa-{{ include "certmanager.fullname" . }}-webhook
 imagePullSecrets:
   {{- include "certmanager.imagePullSecrets" ( 
       dict "imagePullSecrets" (concat $global.imagePullSecrets
@@ -30,7 +30,7 @@ containers:
   {{- with (concat $pod.sidecarContainers) }}
   {{- . | toYaml | nindent 2 }}
   {{- end }}
-  - name: cert-manager-cainjector
+  - name: cert-manager-webhook
     image: {{ include "certmanager.image" ( dict "img" $img "ctx" $ ) }}
     imagePullPolicy: {{ include "certmanager.firstOf" (
                         dict "items" ( list $global.imagePullPolicy 
@@ -59,6 +59,10 @@ containers:
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
+      - name: CERT_MANAGER_HELM_FULLNAME
+        value: {{ include "certmanager.fullname" . | quote }}
+      - name: CERT_MANAGER_SECURE_PORT
+        value: {{ $main.service.ports.https.port | quote }}
       - name: POD_NAMESPACE
         valueFrom:
           fieldRef:

@@ -1,13 +1,13 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
 {{- $main := $v.webhook -}}
-{{- $sa := $main.rbac.serviceAccount -}}
+{{- $cr := $main.rbac.cr -}}
 
---- # --------------------------------------------------------------------------------- ServiceAccount
-apiVersion: v1
-kind: ServiceAccount
+--- # --------------------------------------------------------------------------------- ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
-  name: sa-{{ include "certmanager.fullname" . }}-webhook
+  name: {{ include "certmanager.fullname" . }}-webhook:subjectaccessreviews
   labels:
     app: webhook
     {{- include "certmanager.defaultLabels" . | nindent 4 }}
@@ -15,13 +15,14 @@ metadata:
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels
-                          $sa.labels ) ) | nindent 4 }}
+                          $cr.labels ) ) | nindent 4 }}
   annotations:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations
-                          $sa.annotations ) ) | nindent 4 }}
-{{- with $sa.automountServiceAccountToken }}
-automountServiceAccountToken: {{ . }}
-{{- end }}
+                          $cr.annotations ) ) | nindent 4 }}
+rules:
+  - apiGroups: [ "authorization.k8s.io" ]
+    resources: [ "subjectaccessreviews" ]
+    verbs: [ "create" ]

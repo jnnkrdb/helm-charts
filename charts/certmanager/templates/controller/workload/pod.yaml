@@ -1,0 +1,34 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.controller -}}
+{{- $wl := $main.workload -}}
+{{- $pod := $main.pod -}}
+
+{{- if (eq (include "certmanager.workloadKind" ( dict "kind" $wl.kind )) "Pod") -}}
+--- # --------------------------------------------------------------------------------- Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "certmanager.fullname" . }}-controller
+  labels:
+    app: controller
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels 
+                          $wl.labels) ) | nindent 4 }}
+  annotations:
+    {{- with $main.service.ports.metrics.port }}
+    prometheus.io/path: "/metrics"
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '{{ . }}'
+    {{- end }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations 
+                          $wl.annotations) ) | nindent 4 }}
+spec:
+  {{- include "controller.pod" . | nindent 2 }}
+{{- end -}}

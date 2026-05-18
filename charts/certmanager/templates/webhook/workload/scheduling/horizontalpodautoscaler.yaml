@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.cainjector -}}
+{{- $main := $v.controller -}}
 {{- $wl := $main.workload -}}
 {{- $hpa := $main.hpa -}}
 
@@ -10,9 +10,9 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "certmanager.fullname" . }}-cainjector
+  name: {{ include "certmanager.fullname" . }}-controller
   labels:
-    app: cainjector
+    app: controller
     {{- include "certmanager.defaultLabels" . | nindent 4 }}
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -29,7 +29,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: {{ include "certmanager.workloadKind" ( dict "kind" $wl.kind ) }}
-    name: {{ include "certmanager.fullname" . }}-cainjector
+    name: {{ include "certmanager.fullname" . }}-controller
   minReplicas: {{ $hpa.minReplicas }}
   maxReplicas: {{ $hpa.maxReplicas }}
   {{- with $hpa.metrics }}
