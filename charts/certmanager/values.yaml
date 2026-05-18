@@ -1,0 +1,174 @@
+# --------------------------------------------------------------------------------------------------
+# GLOBAL CONFIGURATION
+global:
+  imagePullSecrets: []
+  imagePullPolicy: null
+  imageRegistry: null
+  storageClassName: null
+  ingressClassName: null
+  labels: {}
+  annotations: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# GENERAL CONFIGURATION
+labels: {}
+annotations: {}
+extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# IMAGE CONFIGURATION
+images:
+  cainjector:
+    registry: quay.io
+    repository: jetstack/cert-manager-cainjector
+    tag: v1.10.1
+    digest: null
+    imagePullPolicy: Always
+    imagePullSecrets: []
+
+# --------------------------------------------------------------------------------------------------
+# CAINJECTOR CONFIGURATION
+cainjector:
+  annotations: {}
+  labels: {}
+
+  # --------------------------------------------------------------------------------------------------
+  # WORKLOAD CONFIGURATION
+  workload:
+    annotations: {}
+    labels: {}
+    # supports either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    volumeClaimTemplates: []
+    updateStrategy:
+      type: Recreate
+
+  # --------------------------------------------------------------------------------------------------
+  # POD CONFIGURATION
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity: {}
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  # --------------------------------------------------------------------------------------------------
+  # CONTAINER CONFIGURATION
+  containers:
+    cainjector:
+      command: []
+      args:
+      - --v=2
+      - --leader-election-namespace=kube-system
+      workingDir: null
+      resources:
+        requests:
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+      extraEnvs:
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe: {}
+      livenessProbe: {}
+      readinessProbe: {}
+
+  # --------------------------------------------------------------------------------------------------
+  # PDB CONFIGURATION
+  pdb:
+    enabled: false
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  # --------------------------------------------------------------------------------------------------
+  # HORIZONTAL POD AUTOSCALER CONFIGURATION
+  hpa:
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  # --------------------------------------------------------------------------------------------------
+  # RBAC CONFIGURATION
+  rbac:
+    serviceAccount:
+      annotations: {}
+      labels: {}
+      automountServiceAccountToken: true
+    crb:
+      annotations: {}
+      labels: {}
+    cr:
+      annotations: {}
+      labels: {}
