@@ -25,6 +25,7 @@ rules:
     resources: [ "leases" ]
     resourceNames: [ "cert-manager-controller" ]
     verbs: [ "get", "update", "patch" ]
+    
   - apiGroups: [ "coordination.k8s.io" ]
     resources: [ "leases" ]
     verbs: [ "create" ]

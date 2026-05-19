@@ -21,9 +21,10 @@ metadata:
                           $main.annotations ) ) | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: Role
   name: {{ include "certmanager.fullname" . }}-controller
 subjects:
-- name: sa-{{ include "certmanager.fullname" . }}-controller
-  namespace: {{ .Release.Namespace }}
-  kind: ServiceAccount
+  - kind: ServiceAccount
+    name: sa-{{ include "certmanager.fullname" . }}-controller
+    namespace: {{ .Release.Namespace }}
+    

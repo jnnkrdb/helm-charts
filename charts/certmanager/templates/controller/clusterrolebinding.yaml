@@ -27,6 +27,6 @@ roleRef:
   kind: ClusterRole
   name: {{ include "certmanager.fullname" . }}-controller
 subjects:
-  - name: sa-{{ include "certmanager.fullname" . }}-controller
+  - kind: ServiceAccount
+    name: sa-{{ include "certmanager.fullname" . }}-controller
     namespace: {{ .Release.Namespace }}
-    kind: ServiceAccount
