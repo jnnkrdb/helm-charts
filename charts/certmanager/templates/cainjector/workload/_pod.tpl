@@ -4,8 +4,8 @@ Pod Spec
 {{- define "cainjector.pod" -}}
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.cainjector -}}
 {{- $img := $v.images.cainjector -}}
+{{- $main := $v.cainjector -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 {{- $ctr := $main.containers.cainjector -}}
