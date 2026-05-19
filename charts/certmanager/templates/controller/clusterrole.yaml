@@ -23,6 +23,7 @@ metadata:
                           $main.annotations
                           $cr.annotations ) ) | nindent 4 }}
 rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-orders
   - apiGroups: [ "acme.cert-manager.io" ]
     resources: [ "orders", "orders/status" ]
     verbs: [ "update", "patch" ]
@@ -47,58 +48,7 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "events" ]
     verbs: [ "create", "patch" ]
---- # --------------------------------------------------------------------------------- ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-issuers
-  labels:
-    app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
-  annotations:
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
-rules:
-  - apiGroups: [ "cert-manager.io" ]
-    resources: [ "issuers", "issuers/status" ]
-    verbs: [ "update", "patch" ]
-  - apiGroups: [ "cert-manager.io" ]
-    resources: [ "issuers" ]
-    verbs: [ "get", "list", "watch" ]
-  - apiGroups: [ "" ]
-    resources: [ "secrets" ]
-    verbs: [ "get", "list", "watch", "create", "update", "delete" ]
-  - apiGroups: [ "" ]
-    resources: [ "events" ]
-    verbs: [ "create", "patch" ]
---- # --------------------------------------------------------------------------------- ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-ingress-shim
-  labels:
-    app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
-  annotations:
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
-rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-ingress-shim
   - apiGroups: [ "cert-manager.io" ]
     resources: [ "certificates", "certificaterequests" ]
     verbs: [ "create", "update", "delete" ]
@@ -123,26 +73,20 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "events" ]
     verbs: [ "create", "patch" ]
---- # --------------------------------------------------------------------------------- ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-clusterissuers
-  labels:
-    app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
-  annotations:
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
-rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-issuers
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "issuers", "issuers/status" ]
+    verbs: [ "update", "patch" ]
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "issuers" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
+    verbs: [ "get", "list", "watch", "create", "update", "delete" ]
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "create", "patch" ]
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-clusterissuers
   - apiGroups: [ "cert-manager.io" ]
     resources: [ "clusterissuers", "clusterissuers/status" ]
     verbs: [ "update", "patch" ]
@@ -155,26 +99,7 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "events" ]
     verbs: [ "create", "patch" ]
---- # --------------------------------------------------------------------------------- ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-challenges
-  labels:
-    app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
-  annotations:
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
-rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-challenges
   # Use to update challenge resource status
   - apiGroups: [ "acme.cert-manager.io" ]
     resources: [ "challenges", "challenges/status" ]
@@ -221,26 +146,7 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "secrets" ]
     verbs: [ "get", "list", "watch" ]
---- # --------------------------------------------------------------------------------- ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-certificatesigningrequests
-  labels:
-    app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
-  annotations:
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
-rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-certificatesigningrequests
   - apiGroups: [ "certificates.k8s.io" ]
     resources: [ "certificatesigningrequests" ]
     verbs: [ "get", "list", "watch", "update" ]
@@ -254,26 +160,7 @@ rules:
   - apiGroups: [ "authorization.k8s.io" ]
     resources: [ "subjectaccessreviews" ]
     verbs: [ "create" ]
---- # --------------------------------------------------------------------------------- ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-certificates
-  labels:
-    app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
-  annotations:
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
-rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-certificates
   - apiGroups: [ "cert-manager.io" ]
     resources: [ "certificates", "certificates/status", "certificaterequests", "certificaterequests/status" ]
     verbs: [ "update", "patch" ]
@@ -295,26 +182,7 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "events" ]
     verbs: [ "create", "patch" ]
---- # --------------------------------------------------------------------------------- ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-approve:cert-manager-io
-  labels:
-    app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
-  annotations:
-    {{- include "certmanager.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
-rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-controller-approve:cert-manager-io
   - apiGroups: [ "cert-manager.io" ]
     resources: [ "signers" ]
     verbs: [ "approve" ]

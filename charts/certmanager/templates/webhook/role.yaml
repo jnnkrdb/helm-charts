@@ -1,14 +1,14 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.controller -}}
+{{- $main := $v.webhook -}}
 
 --- # --------------------------------------------------------------------------------- Role
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "certmanager.fullname" . }}-controller:leaderelection
+  name: {{ include "certmanager.fullname" . }}-webhook
   labels:
-    app: controller
+    app: webhook
     {{- include "certmanager.defaultLabels" . | nindent 4 }}
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -20,10 +20,13 @@ metadata:
                           $v.annotations 
                           $main.annotations ) ) | nindent 4 }}
 rules:
-  - apiGroups: [ "coordination.k8s.io" ]
-    resources: [ "leases" ]
-    resourceNames: [ "cert-manager-controller" ]
-    verbs: [ "get", "update", "patch" ]
-  - apiGroups: [ "coordination.k8s.io" ]
-    resources: [ "leases" ]
+# -------------------------------------------------------------------------------------------------------------------- cert-manager-webhook:dynamic-serving
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
+    resourceNames:
+      - '{{ include "certmanager.fullname" . | quote }}-webhook-ca'
+    verbs: [ "get", "list", "watch", "update" ]
+  # It's not possible to grant CREATE permission on a single resourceName.
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
     verbs: [ "create" ]
