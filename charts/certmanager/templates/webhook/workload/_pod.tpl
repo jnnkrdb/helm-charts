@@ -8,6 +8,7 @@ Pod Spec
 {{- $img := $v.images.webhook -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
+{{- $svc := $main.service -}}
 {{- $ctr := $main.containers.webhook -}}
 
 {{- include "certmanager.podSpec" ( dict "podSpec" $pod ) }}
@@ -62,7 +63,7 @@ containers:
       - name: CERT_MANAGER_HELM_FULLNAME
         value: {{ include "certmanager.fullname" . | quote }}
       - name: CERT_MANAGER_SECURE_PORT
-        value: {{ $main.service.ports.https.port | quote }}
+        value: {{ $svc.ports.https.port | quote }}
       - name: POD_NAMESPACE
         valueFrom:
           fieldRef:
@@ -72,6 +73,15 @@ containers:
     envFrom:
       {{- . | toYaml | nindent 6 }}
     {{- end }}
+    ports:
+      {{- range $portName, $portSpecs := $svc.ports }}
+      - name: {{ $portName | quote }}
+        containerPort: {{ $portSpecs.port }}
+        protocol: {{ $portSpecs.protocol }}
+        {{- with $portSpecs.hostPort }}
+        hostPort: {{ . }}
+        {{- end }}
+      {{- end }}
     {{- with ( concat $ctr.extraVolumeMounts 
                       $pod.extraVolumeMounts
                       $global.extraVolumeMounts) }}

@@ -3,6 +3,7 @@
 {{- $main := $v.controller -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
+{{- $svc := $main.service -}}
 
 {{- if (eq (include "certmanager.workloadKind" ( dict "kind" $wl.kind )) "StatefulSet") -}}
 {{- if not $wl.serviceName -}}
