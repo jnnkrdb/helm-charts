@@ -118,7 +118,7 @@ cainjector:
       command: []
       args:
       - --v=2
-      - --leader-election-namespace=kube-system
+      - --leader-election-namespace=$(POD_NAMESPACE)
       workingDir: null
       resources: {}
       securityContext:
@@ -258,7 +258,7 @@ controller:
       args:
       - --v=2
       - --cluster-resource-namespace=$(POD_NAMESPACE)
-      - --leader-election-namespace=kube-system
+      - --leader-election-namespace=$(POD_NAMESPACE)
       workingDir: null
       resources: {}
       securityContext:
