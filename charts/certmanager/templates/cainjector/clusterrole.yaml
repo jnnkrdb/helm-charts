@@ -1,7 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
 {{- $main := $v.cainjector -}}
-{{- $cr := $main.rbac.cr -}}
 
 --- # --------------------------------------------------------------------------------- ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,30 +13,37 @@ metadata:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
+                          $main.labels ) ) | nindent 4 }}
   annotations:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
+                          $main.annotations ) ) | nindent 4 }}
 rules:
+# -------------------------------------------------------------------------------------------------------------------- cert-manager.io / certificates
   - apiGroups: [ "cert-manager.io" ]
     resources: [ "certificates" ]
     verbs: [ "get", "list", "watch" ]
+    
+# -------------------------------------------------------------------------------------------------------------------- core / secrets, events
   - apiGroups: [ "" ]
     resources: [ "secrets" ]
     verbs: [ "get", "list", "watch" ]
   - apiGroups: [ "" ]
     resources: [ "events" ]
     verbs: [ "get", "create", "update", "patch" ]
+
+# -------------------------------------------------------------------------------------------------------------------- admissionregistration.k8s.io / validatingwebhookconfigurations, mutatingwebhookconfigurations
   - apiGroups: [ "admissionregistration.k8s.io" ]
     resources: [ "validatingwebhookconfigurations", "mutatingwebhookconfigurations" ]
     verbs: [ "get", "list", "watch", "update" ]
+
+# -------------------------------------------------------------------------------------------------------------------- apiregistration.k8s.io / apiservices
   - apiGroups: [ "apiregistration.k8s.io" ]
     resources: [ "apiservices" ]
     verbs: [ "get", "list", "watch", "update" ]
+
+# -------------------------------------------------------------------------------------------------------------------- apiextensions.k8s.io / customresourcedefinitions
   - apiGroups: [ "apiextensions.k8s.io" ]
     resources: [ "customresourcedefinitions" ]
     verbs: [ "get", "list", "watch", "update" ]

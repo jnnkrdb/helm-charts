@@ -171,12 +171,6 @@ cainjector:
       annotations: {}
       labels: {}
       automountServiceAccountToken: true
-    crb:
-      annotations: {}
-      labels: {}
-    cr:
-      annotations: {}
-      labels: {}
 
 # --------------------------------------------------------------------------------------------------
 # CONTROLLER CONFIGURATION
@@ -328,12 +322,6 @@ controller:
       annotations: {}
       labels: {}
       automountServiceAccountToken: true
-    crb:
-      annotations: {}
-      labels: {}
-    cr:
-      annotations: {}
-      labels: {}
 
 # --------------------------------------------------------------------------------------------------
 # WEBHOOK CONFIGURATION

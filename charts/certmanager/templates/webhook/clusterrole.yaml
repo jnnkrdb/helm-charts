@@ -1,7 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
 {{- $main := $v.webhook -}}
-{{- $cr := $main.rbac.cr -}}
 
 --- # --------------------------------------------------------------------------------- ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,16 +13,14 @@ metadata:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
+                          $main.labels ) ) | nindent 4 }}
   annotations:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
+                          $main.annotations ) ) | nindent 4 }}
 rules:
-# -------------------------------------------------------------------------------------------------------------------- cert-manager-webhook:subjectaccessreviews
+# -------------------------------------------------------------------------------------------------------------------- authorization.k8s.io / subjectaccessreviews
   - apiGroups: [ "authorization.k8s.io" ]
     resources: [ "subjectaccessreviews" ]
     verbs: [ "create" ]

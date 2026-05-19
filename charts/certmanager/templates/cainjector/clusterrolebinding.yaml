@@ -27,6 +27,6 @@ roleRef:
   kind: ClusterRole
   name: {{ include "certmanager.fullname" . }}-cainjector
 subjects:
-  - name: sa-{{ include "certmanager.fullname" . }}-cainjector
+  - kind: ServiceAccount
+    name: sa-{{ include "certmanager.fullname" . }}-cainjector
     namespace: {{ .Release.Namespace }}
-    kind: ServiceAccount

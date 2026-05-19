@@ -1,7 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
 {{- $main := $v.controller -}}
-{{- $cr := $main.rbac.cr -}}
 
 --- # --------------------------------------------------------------------------------- ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,14 +13,12 @@ metadata:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
-                          $main.labels
-                          $cr.labels ) ) | nindent 4 }}
+                          $main.labels ) ) | nindent 4 }}
   annotations:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
-                          $main.annotations
-                          $cr.annotations ) ) | nindent 4 }}
+                          $main.annotations ) ) | nindent 4 }}
 rules:
 # -------------------------------------------------------------------------------------------------------------------- core / secrets, events, pods, services
   - apiGroups: [ "" ]
@@ -52,7 +49,6 @@ rules:
   - apiGroups: [ "gateway.networking.k8s.io" ]
     resources: [ "gateways/finalizers", "httproutes/finalizers" ]
     verbs: [ "update" ]
-
 
 # -------------------------------------------------------------------------------------------------------------------- acme.cert-manager.io / orders
   - apiGroups: [ "acme.cert-manager.io" ]

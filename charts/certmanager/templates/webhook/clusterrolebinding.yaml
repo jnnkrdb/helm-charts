@@ -1,7 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
 {{- $main := $v.webhook -}}
-{{- $crb := $main.rbac.crb -}}
 
 --- # --------------------------------------------------------------------------------- ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,19 +13,17 @@ metadata:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
-                          $main.labels
-                          $crb.labels ) ) | nindent 4 }}
+                          $main.labels ) ) | nindent 4 }}
   annotations:
     {{- include "certmanager.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
-                          $main.annotations
-                          $crb.annotations ) ) | nindent 4 }}
+                          $main.annotations ) ) | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: {{ include "certmanager.fullname" . }}-webhook
 subjects:
-  - name: sa-{{ include "certmanager.fullname" . }}-webhook
+  - kind: ServiceAccount
+    name: sa-{{ include "certmanager.fullname" . }}-webhook
     namespace: {{ .Release.Namespace }}
-    kind: ServiceAccount

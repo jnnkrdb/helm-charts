@@ -20,13 +20,12 @@ metadata:
                           $v.annotations 
                           $main.annotations ) ) | nindent 4 }}
 rules:
-# -------------------------------------------------------------------------------------------------------------------- cert-manager-webhook:dynamic-serving
+# -------------------------------------------------------------------------------------------------------------------- core / secrets
   - apiGroups: [ "" ]
     resources: [ "secrets" ]
     resourceNames:
       - {{ include "certmanager.fullname" . }}-webhook-ca
     verbs: [ "get", "list", "watch", "update" ]
-  # It's not possible to grant CREATE permission on a single resourceName.
   - apiGroups: [ "" ]
     resources: [ "secrets" ]
     verbs: [ "create" ]
