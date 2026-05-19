@@ -1,0 +1,30 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.controller -}}
+
+--- # --------------------------------------------------------------------------------- RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "certmanager.fullname" . }}-controller
+  labels:
+    app: controller
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations ) ) | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "certmanager.fullname" . }}-controller
+subjects:
+  - kind: ServiceAccount
+    name: sa-{{ include "certmanager.fullname" . }}-controller
+    namespace: {{ .Release.Namespace }}
+    

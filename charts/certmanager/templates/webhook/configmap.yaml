@@ -1,0 +1,24 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.webhook -}}
+{{- $svc := $main.service -}}
+
+--- # --------------------------------------------------------------------------------- ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "certmanager.fullname" . }}-webhook
+  labels:
+    app: webhook
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels
+                          $svc.labels) ) | nindent 4 }}
+  annotations:
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations
+                          $svc.annotations) ) | nindent 4 }}

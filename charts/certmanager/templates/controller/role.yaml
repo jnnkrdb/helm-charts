@@ -1,0 +1,31 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.controller -}}
+
+--- # --------------------------------------------------------------------------------- Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "certmanager.fullname" . }}-controller
+  labels:
+    app: controller
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations ) ) | nindent 4 }}
+rules:
+  # ---------------------------------------------------------- cert-manager:leaderelection
+  - apiGroups: [ "coordination.k8s.io" ]
+    resources: [ "leases" ]
+    resourceNames: [ "cert-manager-controller" ]
+    verbs: [ "get", "update", "patch" ]
+    
+  - apiGroups: [ "coordination.k8s.io" ]
+    resources: [ "leases" ]
+    verbs: [ "create" ]

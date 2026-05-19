@@ -1,0 +1,105 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.controller -}}
+
+--- # --------------------------------------------------------------------------------- ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "certmanager.fullname" . }}-controller
+  labels:
+    app: controller
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations ) ) | nindent 4 }}
+rules:
+# -------------------------------------------------------------------------------------------------------------------- core / secrets, events, pods, services
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
+    verbs: [ "create", "delete", "get", "list", "watch", "update", "patch" ]
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "create", "patch" ]
+  - apiGroups: [ "" ]
+    resources: [ "pods", "services" ]
+    verbs: [ "get", "list", "watch", "create", "delete" ]
+
+# -------------------------------------------------------------------------------------------------------------------- networking.k8s.io / ingresses
+  - apiGroups: [ "networking.k8s.io" ]
+    resources: [ "ingresses" ]
+    verbs: [ "get", "list", "watch", "create", "delete", "update", "patch" ]
+  - apiGroups: [ "networking.k8s.io" ]
+    resources: [ "ingresses/finalizers" ]
+    verbs: [ "update" ]
+
+# -------------------------------------------------------------------------------------------------------------------- gateway.networking.k8s.io / gateways, httproutes
+  - apiGroups: [ "gateway.networking.k8s.io" ]
+    resources: [ "gateways" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "gateway.networking.k8s.io" ]
+    resources: [ "httproutes" ]
+    verbs: [ "get", "list", "watch", "create", "delete", "update", "patch" ]
+  - apiGroups: [ "gateway.networking.k8s.io" ]
+    resources: [ "gateways/finalizers", "httproutes/finalizers" ]
+    verbs: [ "update" ]
+
+# -------------------------------------------------------------------------------------------------------------------- acme.cert-manager.io / orders
+  - apiGroups: [ "acme.cert-manager.io" ]
+    resources: [ "orders" ]
+    verbs: [ "create", "delete", "get", "list", "watch", "update", "patch" ]
+  - apiGroups: [ "acme.cert-manager.io" ]
+    resources: [ "orders/status", "orders/finalizers" ]
+    verbs: [ "update", "patch" ]
+
+# -------------------------------------------------------------------------------------------------------------------- acme.cert-manager.io / challenges
+  - apiGroups: [ "acme.cert-manager.io" ]
+    resources: [ "challenges" ]
+    verbs: [ "create", "delete", "get", "list", "watch", "update", "patch" ]
+  - apiGroups: [ "acme.cert-manager.io" ]
+    resources: [ "challenges/status", "challenges/finalizers" ]
+    verbs: [ "update", "patch" ]
+
+# -------------------------------------------------------------------------------------------------------------------- cert-manager.io / clusterissuers, issuers
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "clusterissuers", "issuers" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "issuers", "issuers/status", "clusterissuers", "clusterissuers/status" ]
+    verbs: [ "update", "patch" ]
+
+# -------------------------------------------------------------------------------------------------------------------- cert-manager.io / certificates, certificaterequests
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificates", "certificaterequests" ]
+    verbs: [ "create", "delete", "get", "list", "watch", "update" ]
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificates", "certificates/status", "certificates/finalizers", "certificaterequests", "certificaterequests/status", "certificaterequests/finalizers" ]
+    verbs: [ "update", "patch" ]
+
+# -------------------------------------------------------------------------------------------------------------------- certificates.k8s.io / certificatesigningrequests, signers
+  - apiGroups: [ "certificates.k8s.io" ]
+    resources: [ "certificatesigningrequests" ]
+    verbs: [ "get", "list", "watch", "update" ]
+  - apiGroups: [ "certificates.k8s.io" ]
+    resources: [ "certificatesigningrequests/status" ]
+    verbs: [ "update", "patch" ]
+  - apiGroups: [ "certificates.k8s.io" ]
+    resources: [ "signers" ]
+    resourceNames: [ "issuers.cert-manager.io/*", "clusterissuers.cert-manager.io/*" ]
+    verbs: [ "sign", "approve" ]
+
+# -------------------------------------------------------------------------------------------------------------------- authorization.k8s.io / subjectaccessreviews
+  - apiGroups: [ "authorization.k8s.io" ]
+    resources: [ "subjectaccessreviews" ]
+    verbs: [ "create" ]
+
+# -------------------------------------------------------------------------------------------------------------------- route.openshift.io / routes
+  - apiGroups: [ "route.openshift.io" ]
+    resources: [ "routes/custom-host" ]
+    verbs: [ "create" ]

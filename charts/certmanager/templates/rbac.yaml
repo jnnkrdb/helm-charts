@@ -1,0 +1,53 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+
+--- # --------------------------------------------------------------------------------- ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "certmanager.fullname" . }}-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations ) ) | nindent 4 }}
+rules:
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificates", "certificaterequests", "issuers" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "acme.cert-manager.io" ]
+    resources: [ "challenges", "orders" ]
+    verbs: [ "get", "list", "watch" ]
+--- # --------------------------------------------------------------------------------- ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "certmanager.fullname" . }}-edit
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations ) ) | nindent 4 }}
+rules:
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificates", "certificaterequests", "issuers" ]
+    verbs: [ "create", "delete", "deletecollection", "patch", "update" ]
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificates/status" ]
+    verbs: [ "update" ]
+  - apiGroups: [ "acme.cert-manager.io" ]
+    resources: [ "challenges", "orders" ]
+    verbs: [ "create", "delete", "deletecollection", "patch", "update" ]

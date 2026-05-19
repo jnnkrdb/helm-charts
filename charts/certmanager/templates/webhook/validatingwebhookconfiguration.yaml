@@ -1,0 +1,58 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.webhook -}}
+
+--- # --------------------------------------------------------------------------------- ValidatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "certmanager.fullname" . }}-webhook
+  labels:
+    app: webhook
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels ) ) | nindent 4 }}
+  annotations:
+    cert-manager.io/inject-ca-from-secret: "{{ .Release.Namespace }}/{{ include "certmanager.fullname" . }}-webhook-ca"
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations ) ) | nindent 4 }}
+webhooks:
+  - name: webhook.cert-manager.io
+    namespaceSelector:
+      matchExpressions:
+        - key: "cert-manager.io/disable-validation"
+          operator: "NotIn"
+          values:
+            - "true"
+        - key: "name"
+          operator: "NotIn"
+          values:
+            - {{ .Release.Namespace | quote }}
+    rules:
+      - apiGroups:
+          - "cert-manager.io"
+          - "acme.cert-manager.io"
+        apiVersions:
+          - "v1"
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - "*/*"
+    admissionReviewVersions: [ "v1" ]
+    # This webhook only accepts v1 cert-manager resources.
+    # Equivalent matchPolicy ensures that non-v1 resource requests are sent to
+    # this webhook (after the resources have been converted to v1).
+    matchPolicy: Equivalent
+    timeoutSeconds: 10
+    failurePolicy: Fail
+    sideEffects: None
+    clientConfig:
+      service:
+        name: {{ include "certmanager.fullname" . }}-webhook
+        namespace: {{ .Release.Namespace }}
+        path: /validate

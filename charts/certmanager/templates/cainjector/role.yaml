@@ -1,0 +1,34 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.cainjector -}}
+
+--- # --------------------------------------------------------------------------------- Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "certmanager.fullname" . }}-cainjector
+  labels:
+    app: cainjector
+    {{- include "certmanager.defaultLabels" . | nindent 4 }}
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "certmanager.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations ) ) | nindent 4 }}
+rules:
+  # Used for leader election by the controller
+  # cert-manager-cainjector-leader-election is used by the CertificateBased injector controller
+  #   see cmd/cainjector/start.go#L113
+  # cert-manager-cainjector-leader-election-core is used by the SecretBased injector controller
+  #   see cmd/cainjector/start.go#L137
+  - apiGroups: [ "coordination.k8s.io" ]
+    resources: [ "leases" ]
+    resourceNames: [ "cert-manager-cainjector-leader-election", "cert-manager-cainjector-leader-election-core" ]
+    verbs: [ "get", "update", "patch" ]
+  - apiGroups: [ "coordination.k8s.io" ]
+    resources: [ "leases" ]
+    verbs: [ "create" ]

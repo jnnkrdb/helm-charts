@@ -1,0 +1,514 @@
+# --------------------------------------------------------------------------------------------------
+# GLOBAL CONFIGURATION
+global:
+  imagePullSecrets: []
+  imagePullPolicy: null
+  imageRegistry: null
+  storageClassName: null
+  ingressClassName: null
+  labels: {}
+  annotations: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# GENERAL CONFIGURATION
+labels: {}
+annotations: {}
+extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# IMAGE CONFIGURATION
+images:
+  cainjector:
+    registry: quay.io
+    repository: jetstack/cert-manager-cainjector
+    tag: v1.10.1
+    digest: null
+    imagePullPolicy: Always
+    imagePullSecrets: []
+  controller:
+    registry: quay.io
+    repository: jetstack/cert-manager-controller
+    tag: v1.10.1
+    digest: null
+    imagePullPolicy: Always
+    imagePullSecrets: []
+  webhook:
+    registry: quay.io
+    repository: jetstack/cert-manager-webhook
+    tag: v1.10.1
+    digest: null
+    imagePullPolicy: Always
+    imagePullSecrets: []
+
+# --------------------------------------------------------------------------------------------------
+# CAINJECTOR CONFIGURATION
+cainjector:
+  annotations: {}
+  labels: {}
+
+  # --------------------------------------------------------------------------------------------------
+  # WORKLOAD CONFIGURATION
+  workload:
+    annotations: {}
+    labels: {}
+    # supports either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    volumeClaimTemplates: []
+    updateStrategy:
+      type: Recreate
+
+  # --------------------------------------------------------------------------------------------------
+  # POD CONFIGURATION
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity: {}
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  # --------------------------------------------------------------------------------------------------
+  # CONTAINER CONFIGURATION
+  containers:
+    cainjector:
+      command: []
+      args:
+      - --v=2
+      - --leader-election-namespace=$(POD_NAMESPACE)
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe: {}
+      livenessProbe: {}
+      readinessProbe: {}
+
+  # --------------------------------------------------------------------------------------------------
+  # PDB CONFIGURATION
+  pdb:
+    enabled: false
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  # --------------------------------------------------------------------------------------------------
+  # HORIZONTAL POD AUTOSCALER CONFIGURATION
+  hpa:
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  # --------------------------------------------------------------------------------------------------
+  # RBAC CONFIGURATION
+  rbac:
+    serviceAccount:
+      annotations: {}
+      labels: {}
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# CONTROLLER CONFIGURATION
+controller:
+  annotations: {}
+  labels: {}
+
+  # --------------------------------------------------------------------------------------------------
+  # WORKLOAD CONFIGURATION
+  workload:
+    annotations: {}
+    labels: {}
+    # supports either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    volumeClaimTemplates: []
+    updateStrategy:
+      type: Recreate
+
+  # --------------------------------------------------------------------------------------------------
+  # POD CONFIGURATION
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity: {}
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  # --------------------------------------------------------------------------------------------------
+  # CONTAINER CONFIGURATION
+  containers:
+    controller:
+      command: []
+      args:
+      - --v=2
+      - --cluster-resource-namespace=$(POD_NAMESPACE)
+      - --leader-election-namespace=$(POD_NAMESPACE)
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe: {}
+      livenessProbe: {}
+      readinessProbe: {}
+
+  # --------------------------------------------------------------------------------------------------
+  # SERVICE CONFIGURATION
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      metrics:
+        port: 9402
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  # --------------------------------------------------------------------------------------------------
+  # PDB CONFIGURATION
+  pdb:
+    enabled: false
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  # --------------------------------------------------------------------------------------------------
+  # HORIZONTAL POD AUTOSCALER CONFIGURATION
+  hpa:
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  # --------------------------------------------------------------------------------------------------
+  # RBAC CONFIGURATION
+  rbac:
+    serviceAccount:
+      annotations: {}
+      labels: {}
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# WEBHOOK CONFIGURATION
+webhook:
+  annotations: {}
+  labels: {}
+
+  # --------------------------------------------------------------------------------------------------
+  # WORKLOAD CONFIGURATION
+  workload:
+    annotations: {}
+    labels: {}
+    # supports either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    volumeClaimTemplates: []
+    updateStrategy:
+      type: Recreate
+
+  # --------------------------------------------------------------------------------------------------
+  # POD CONFIGURATION
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity: {}
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  # --------------------------------------------------------------------------------------------------
+  # CONTAINER CONFIGURATION
+  containers:
+    webhook:
+      command: []
+      args:
+      - --v=2
+      - --secure-port=$(CERT_MANAGER_SECURE_PORT)
+      - --dynamic-serving-ca-secret-namespace=$(POD_NAMESPACE)
+      - --dynamic-serving-ca-secret-name=$(CERT_MANAGER_HELM_FULLNAME)-webhook-ca
+      - --dynamic-serving-dns-names=$(CERT_MANAGER_HELM_FULLNAME)-webhook
+      - --dynamic-serving-dns-names=$(CERT_MANAGER_HELM_FULLNAME)-webhook.$(POD_NAMESPACE)
+      - --dynamic-serving-dns-names=$(CERT_MANAGER_HELM_FULLNAME)-webhook.$(POD_NAMESPACE).svc
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /livez
+          port: healthz
+          scheme: HTTP
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 15
+      livenessProbe:
+        httpGet:
+          path: /livez
+          port: healthz
+          scheme: HTTP
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: healthz
+          scheme: HTTP
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  # --------------------------------------------------------------------------------------------------
+  # SERVICE CONFIGURATION
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      https:
+        port: 10250
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      healthz:
+        port: 6080
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  # --------------------------------------------------------------------------------------------------
+  # PDB CONFIGURATION
+  pdb:
+    enabled: false
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  # --------------------------------------------------------------------------------------------------
+  # HORIZONTAL POD AUTOSCALER CONFIGURATION
+  hpa:
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  # --------------------------------------------------------------------------------------------------
+  # RBAC CONFIGURATION
+  rbac:
+    serviceAccount:
+      annotations: {}
+      labels: {}
+      automountServiceAccountToken: true
+    crb:
+      annotations: {}
+      labels: {}
+    cr:
+      annotations: {}
+      labels: {}
