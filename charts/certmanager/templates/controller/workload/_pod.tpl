@@ -4,8 +4,8 @@ Pod Spec
 {{- define "controller.pod" -}}
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.controller -}}
 {{- $img := $v.images.controller -}}
+{{- $main := $v.controller -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 {{- $svc := $main.service -}}
