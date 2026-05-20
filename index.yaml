@@ -3,6 +3,31 @@ entries:
   certmanager:
   - apiVersion: v2
     appVersion: v1.10.1
+    created: "2026-05-20T13:44:17.51964018Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying cert-manager.
+    digest: 383ff39c417564daee8198090c877d1a9dac8b6d1e13515a6cb1de379ee353de
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - cert-manager
+    - kubernetes
+    - tls
+    - certificates
+    - automation
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: certmanager
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/certmanager-1.0.1/certmanager-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: v1.10.1
     created: "2026-05-19T19:57:38.910155717Z"
     description: A Helm chart for deploying cert-manager.
     digest: 10f072c21787b6cc9521c491124358b051fa02da0d05822b236115c424745084
@@ -58,6 +83,32 @@ entries:
   vaultwarden:
   - apiVersion: v2
     appVersion: 1.36.0
+    created: "2026-05-20T13:44:17.711163602Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying Vaultwarden.
+    digest: bfe83599071737e5583a717fe36bb3e4f5a44a0356e1bfb978b05577956d4490
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - vaultwarden
+    - password
+    - manager
+    - passwordsafe
+    - vault
+    - bitwarden
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: vaultwarden
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.2/vaultwarden-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: 1.36.0
     created: "2026-05-20T10:22:35.576570967Z"
     dependencies:
     - name: common
@@ -104,4 +155,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-05-20T10:22:35.57657807Z"
+generated: "2026-05-20T13:44:17.711181195Z"
