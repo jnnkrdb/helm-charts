@@ -455,7 +455,7 @@ webhook:
     clusterIP: null
     ports:
       https:
-        port: 10250
+        port: 443
         protocol: TCP
         nodePort: null
         hostPort: null
