@@ -5,22 +5,22 @@
 {{- $pod := $main.pod -}}
 {{- $svc := $main.service -}}
 
-{{- if (eq (include "certmanager.workloadKind" ( dict "kind" $wl.kind )) "StatefulSet") -}}
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "StatefulSet") -}}
 {{- if not $wl.serviceName -}}
 --- # --------------------------------------------------------------------------------- Headless Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "certmanager.fullname" . }}-controller-headless
+  name: {{ include "common.fullname" . }}-controller-headless
   labels:
     app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels ) ) | nindent 4 }}
   annotations:
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations ) ) | nindent 4 }}
@@ -36,30 +36,30 @@ spec:
     {{- end }}
   selector:
     app: controller
-    {{- include "certmanager.selectorLabels" . | nindent 4 }}
+    {{- include "common.defaultSelectorLabels" . | nindent 4 }}
 {{- end }}
 --- # --------------------------------------------------------------------------------- Statefulset
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "certmanager.fullname" . }}-controller
+  name: {{ include "common.fullname" . }}-controller
   labels:
     app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels 
                           $wl.labels) ) | nindent 4 }}
   annotations:
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations 
                           $wl.annotations) ) | nindent 4 }}
 spec:
   {{- if not $wl.serviceName }}
-  serviceName: {{ include "certmanager.fullname" . }}-controller-headless
+  serviceName: {{ include "common.fullname" . }}-controller-headless
   {{- else }}
   {{- with $wl.serviceName }}
   serviceName: {{ . | quote }}
@@ -92,7 +92,7 @@ spec:
   selector:
     matchLabels:
       app: controller
-      {{- include "certmanager.selectorLabels" . | nindent 6 }}
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -101,7 +101,7 @@ spec:
         prometheus.io/scrape: 'true'
         prometheus.io/port: '{{ . }}'
         {{- end }}
-        {{- include "certmanager.keyValues" ( 
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.annotations 
                               $v.annotations 
                               $main.annotations 
@@ -109,8 +109,8 @@ spec:
                               $pod.annotations) ) | nindent 8 }}
       labels: 
         app: controller
-        {{- include "certmanager.selectorLabels" . | nindent 8 }}
-        {{- include "certmanager.keyValues" ( 
+        {{- include "common.defaultSelectorLabels" . | nindent 8 }}
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 
                               $v.labels 
                               $main.labels 

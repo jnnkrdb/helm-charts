@@ -11,10 +11,10 @@ Pod Spec
 {{- $svc := $main.service -}}
 {{- $ctr := $main.containers.webhook -}}
 
-{{- include "certmanager.podSpec" ( dict "podSpec" $pod ) }}
-serviceAccountName: sa-{{ include "certmanager.fullname" . }}-webhook
+{{- include "common.podSpec" ( dict "podSpec" $pod ) }}
+serviceAccountName: sa-{{ include "common.fullname" . }}-webhook
 imagePullSecrets:
-  {{- include "certmanager.imagePullSecrets" ( 
+  {{- include "common.imagePullSecrets" ( 
       dict "imagePullSecrets" (concat $global.imagePullSecrets
                                       $pod.imagePullSecrets
                                       $img.imagePullSecrets )) | nindent 2 }}
@@ -32,8 +32,8 @@ containers:
   {{- . | toYaml | nindent 2 }}
   {{- end }}
   - name: cert-manager-webhook
-    image: {{ include "certmanager.image" ( dict "img" $img "ctx" $ ) }}
-    imagePullPolicy: {{ include "certmanager.firstOf" (
+    image: {{ include "common.image" ( dict "img" $img "ctx" $ ) }}
+    imagePullPolicy: {{ include "common.firstOf" (
                         dict "items" ( list $global.imagePullPolicy 
                                             $img.imagePullPolicy )) }}
     {{- with $ctr.command }}
@@ -61,7 +61,7 @@ containers:
       {{- . | toYaml | nindent 6 }}
       {{- end }}
       - name: CERT_MANAGER_HELM_FULLNAME
-        value: {{ include "certmanager.fullname" . | quote }}
+        value: {{ include "common.fullname" . | quote }}
       - name: CERT_MANAGER_SECURE_PORT
         value: {{ $svc.ports.https.port | quote }}
       - name: POD_NAMESPACE
