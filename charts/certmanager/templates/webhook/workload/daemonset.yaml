@@ -4,22 +4,22 @@
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
-{{- if (eq (include "certmanager.workloadKind" ( dict "kind" $wl.kind )) "DaemonSet") -}}
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "DaemonSet") -}}
 --- # --------------------------------------------------------------------------------- DaemonSet
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "certmanager.fullname" . }}-webhook
+  name: {{ include "common.fullname" . }}-webhook
   labels:
     app: webhook
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels 
                           $wl.labels) ) | nindent 4 }}
   annotations:
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations 
@@ -38,11 +38,11 @@ spec:
   selector:
     matchLabels:
       app: webhook
-      {{- include "certmanager.selectorLabels" . | nindent 6 }}
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
-        {{- include "certmanager.keyValues" ( 
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.annotations 
                               $v.annotations 
                               $main.annotations 
@@ -50,8 +50,8 @@ spec:
                               $pod.annotations) ) | nindent 8 }}
       labels: 
         app: webhook
-        {{- include "certmanager.selectorLabels" . | nindent 8 }}
-        {{- include "certmanager.keyValues" ( 
+        {{- include "common.defaultSelectorLabels" . | nindent 8 }}
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 
                               $v.labels 
                               $main.labels 

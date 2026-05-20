@@ -6,16 +6,16 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "certmanager.fullname" . }}-webhook
+  name: {{ include "common.fullname" . }}-webhook
   labels:
     app: webhook
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels ) ) | nindent 4 }}
   annotations:
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations ) ) | nindent 4 }}

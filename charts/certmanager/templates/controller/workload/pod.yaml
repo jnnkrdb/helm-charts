@@ -4,16 +4,16 @@
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
-{{- if (eq (include "certmanager.workloadKind" ( dict "kind" $wl.kind )) "Pod") -}}
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "Pod") -}}
 --- # --------------------------------------------------------------------------------- Pod
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ include "certmanager.fullname" . }}-controller
+  name: {{ include "common.fullname" . }}-controller
   labels:
     app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels 
@@ -24,7 +24,7 @@ metadata:
     prometheus.io/scrape: 'true'
     prometheus.io/port: '{{ . }}'
     {{- end }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations 
