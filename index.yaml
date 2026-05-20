@@ -24,6 +24,22 @@ entries:
     version: 1.0.0
   common:
   - apiVersion: v2
+    created: "2026-05-20T10:22:35.359875955Z"
+    description: A Helm chart for common utilities.
+    digest: 97d890ffa623a0d19302919582ca5c94c7a37fc343782a5f499068520f71e02c
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - common
+    - utilities
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: common
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/common-1.0.1/common-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     created: "2026-05-20T07:30:28.221203726Z"
     description: A Helm chart for common utilities.
     digest: c5120a38c7313fa49e32a82908b6bbc24e450f6d62ae5d175e23643cb92d6d10
@@ -40,6 +56,32 @@ entries:
     - https://github.com/jnnkrdb/helm-charts/releases/download/common-1.0.0/common-1.0.0.tgz
     version: 1.0.0
   vaultwarden:
+  - apiVersion: v2
+    appVersion: 1.36.0
+    created: "2026-05-20T10:22:35.576570967Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.0
+    description: A Helm chart for deploying Vaultwarden.
+    digest: 722eea6fbd1fb85052a9a6bdf291051e3bc6aa8198d4b9b6f0b924bc4384517a
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - vaultwarden
+    - password
+    - manager
+    - passwordsafe
+    - vault
+    - bitwarden
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: vaultwarden
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.1/vaultwarden-1.0.1.tgz
+    version: 1.0.1
   - apiVersion: v2
     appVersion: 1.36.0
     created: "2026-05-13T10:22:16.053699553Z"
@@ -62,4 +104,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-05-20T07:30:28.221207833Z"
+generated: "2026-05-20T10:22:35.57657807Z"
