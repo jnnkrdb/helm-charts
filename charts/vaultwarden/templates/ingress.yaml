@@ -8,15 +8,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "vaultwarden.fullname" . }}
+  name: {{ include "common.fullname" . }}
   labels:
-    {{- include "vaultwarden.defaultLabels" . | nindent 4 }}
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $main.labels 
                           $ing.labels) ) | nindent 4 }}
   annotations:
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $main.annotations 
                           $ing.annotations) ) | nindent 4 }}
@@ -29,7 +29,7 @@ spec:
       secretName: {{ . | quote }}
       {{- end }}
   {{- end }}
-  ingressClassName: {{ include "vaultwarden.firstOf" (
+  ingressClassName: {{ include "common.firstOf" (
                         dict "items" ( list $global.ingressClassName 
                                             $ing.ingressClassName )) }}
   rules:
@@ -39,14 +39,14 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ include "vaultwarden.fullname" . }}
+                name: {{ include "common.fullname" . }}
                 port:
                   name: websocket
           - path: /
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ include "vaultwarden.fullname" . }}
+                name: {{ include "common.fullname" . }}
                 port:
                   name: http
       {{- with $ing.host }}

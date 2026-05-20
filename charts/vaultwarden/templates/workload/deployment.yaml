@@ -4,20 +4,20 @@
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
-{{- if (eq (include "vaultwarden.workloadKind" ( dict "kind" $wl.kind )) "Deployment") -}}
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "Deployment") -}}
 --- # --------------------------------------------------------------------------------- Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "vaultwarden.fullname" . }}
+  name: {{ include "common.fullname" . }}
   labels:
-    {{- include "vaultwarden.defaultLabels" . | nindent 4 }}
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $main.labels 
                           $wl.labels) ) | nindent 4 }}
   annotations:
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $main.annotations 
                           $wl.annotations) ) | nindent 4 }}
@@ -40,18 +40,18 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "vaultwarden.selectorLabels" . | nindent 6 }}
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
-        {{- include "vaultwarden.keyValues" ( 
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.annotations 
                               $main.annotations 
                               $wl.annotations
                               $pod.annotations) ) | nindent 8 }}
       labels: 
-        {{- include "vaultwarden.selectorLabels" . | nindent 8 }}
-        {{- include "vaultwarden.keyValues" ( 
+        {{- include "common.defaultSelectorLabels" . | nindent 8 }}
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 
                               $main.labels 
                               $wl.labels

@@ -12,10 +12,10 @@ Pod Spec
 {{- $p := $main.persistence -}}
 {{- $ctr := $main.containers.vaultwarden -}}
 
-{{- include "vaultwarden.podSpec" ( dict "podSpec" $pod ) }}
-serviceAccountName: sa-{{ include "vaultwarden.fullname" . }}
+{{- include "common.podSpec" ( dict "podSpec" $pod ) }}
+serviceAccountName: sa-{{ include "common.fullname" . }}
 imagePullSecrets:
-  {{- include "vaultwarden.imagePullSecrets" ( 
+  {{- include "common.imagePullSecrets" ( 
       dict "imagePullSecrets" (concat $global.imagePullSecrets
                                       $pod.imagePullSecrets
                                       $img.imagePullSecrets )) | nindent 2 }}
@@ -35,7 +35,7 @@ volumes:
       {{- $p.hostPath | toYaml | nindent 6 }}
     {{- else  }}
     persistentVolumeClaim:
-      claimName: {{ include "vaultwarden.fullname" . }}-data
+      claimName: {{ include "common.fullname" . }}-data
     {{- end }}
     {{- else }}
     emptyDir: {}
@@ -45,8 +45,8 @@ containers:
   {{- . | toYaml | nindent 2 }}
   {{- end }}
   - name: vaultwarden
-    image: {{ include "vaultwarden.image" ( dict "img" $img "ctx" $ ) }}
-    imagePullPolicy: {{ include "vaultwarden.firstOf" (
+    image: {{ include "common.image" ( dict "img" $img "ctx" $ ) }}
+    imagePullPolicy: {{ include "common.firstOf" (
                         dict "items" ( list $global.imagePullPolicy 
                                             $img.imagePullPolicy )) }}
     {{- with $ctr.command }}
