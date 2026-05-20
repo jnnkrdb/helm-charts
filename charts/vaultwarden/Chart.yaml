@@ -2,7 +2,7 @@ apiVersion: v2
 name: vaultwarden
 description: A Helm chart for deploying Vaultwarden.
 type: application
-version: 1.0.0
+version: 1.0.1
 appVersion: 1.36.0
 kubeVersion: ">=1.25.0-0"
 home: "https://github.com/jnnkrdb/helm-charts"

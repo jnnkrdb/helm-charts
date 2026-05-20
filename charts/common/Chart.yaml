@@ -2,7 +2,7 @@ apiVersion: v2
 name: common
 description: A Helm chart for common utilities.
 type: application
-version: 1.0.0
+version: 1.0.1
 home: "https://github.com/jnnkrdb/helm-charts"
 maintainers:
 - name: jnnkrdb
