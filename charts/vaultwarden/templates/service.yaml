@@ -7,15 +7,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "vaultwarden.fullname" . }}
+  name: {{ include "common.fullname" . }}
   labels:
-    {{- include "vaultwarden.defaultLabels" . | nindent 4 }}
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $main.labels 
                           $svc.labels) ) | nindent 4 }}
   annotations:
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $main.annotations 
                           $svc.annotations) ) | nindent 4 }}
@@ -45,4 +45,4 @@ spec:
   publishNotReadyAddresses: {{ . }}
   {{- end }}
   selector:
-    {{- include "vaultwarden.selectorLabels" . | nindent 4 }}
+    {{- include "common.defaultSelectorLabels" . | nindent 4 }}

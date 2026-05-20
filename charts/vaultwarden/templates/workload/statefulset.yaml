@@ -5,20 +5,20 @@
 {{- $pod := $main.pod -}}
 {{- $svc := $main.service -}}
 
-{{- if (eq (include "vaultwarden.workloadKind" ( dict "kind" $wl.kind )) "StatefulSet") -}}
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "StatefulSet") -}}
 {{- if not $wl.serviceName -}}
 --- # --------------------------------------------------------------------------------- Headless Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "vaultwarden.fullname" . }}-headless
+  name: {{ include "common.fullname" . }}-headless
   labels:
-    {{- include "vaultwarden.defaultLabels" . | nindent 4 }}
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $main.labels ) ) | nindent 4 }}
   annotations:
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $main.annotations ) ) | nindent 4 }}
 spec:
@@ -32,27 +32,27 @@ spec:
       port: {{ $portSpecs.port }}
     {{- end }}
   selector:
-    {{- include "vaultwarden.selectorLabels" . | nindent 4 }}
+    {{- include "common.defaultSelectorLabels" . | nindent 4 }}
 {{- end }}
 --- # --------------------------------------------------------------------------------- Statefulset
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "vaultwarden.fullname" . }}
+  name: {{ include "common.fullname" . }}
   labels:
-    {{- include "vaultwarden.defaultLabels" . | nindent 4 }}
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $main.labels 
                           $wl.labels) ) | nindent 4 }}
   annotations:
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $main.annotations 
                           $wl.annotations) ) | nindent 4 }}
 spec:
   {{- if not $wl.serviceName }}
-  serviceName: {{ include "vaultwarden.fullname" . }}-headless
+  serviceName: {{ include "common.fullname" . }}-headless
   {{- else }}
   {{- with $wl.serviceName }}
   serviceName: {{ . | quote }}
@@ -84,18 +84,18 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "vaultwarden.selectorLabels" . | nindent 6 }}
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
-        {{- include "vaultwarden.keyValues" ( 
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.annotations 
                               $main.annotations 
                               $wl.annotations
                               $pod.annotations) ) | nindent 8 }}
       labels: 
-        {{- include "vaultwarden.selectorLabels" . | nindent 8 }}
-        {{- include "vaultwarden.keyValues" ( 
+        {{- include "common.defaultSelectorLabels" . | nindent 8 }}
+        {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 
                               $main.labels 
                               $wl.labels
