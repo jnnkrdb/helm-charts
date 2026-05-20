@@ -5,17 +5,17 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "certmanager.fullname" . }}-view
+  name: {{ include "common.fullname" . }}-view
   labels:
     rbac.authorization.k8s.io/aggregate-to-view: "true"
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels ) ) | nindent 4 }}
   annotations:
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations ) ) | nindent 4 }}
 rules:
@@ -29,16 +29,16 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "certmanager.fullname" . }}-edit
+  name: {{ include "common.fullname" . }}-edit
   labels:
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels ) ) | nindent 4 }}
   annotations:
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations ) ) | nindent 4 }}
 rules:

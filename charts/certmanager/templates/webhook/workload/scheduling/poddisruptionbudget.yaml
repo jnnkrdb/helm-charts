@@ -4,23 +4,23 @@
 {{- $pdb := $main.pdb -}}
 {{- $wl := $main.workload -}}
 
-{{- if not (eq (include "certmanager.workloadKind" ( dict "kind" $wl.kind )) "DaemonSet") -}}
+{{- if not (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "DaemonSet") -}}
 {{- if $pdb.enabled -}}
 --- # --------------------------------------------------------------------------------- PodDisruptionBudget
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "certmanager.fullname" . }}-controller
+  name: {{ include "common.fullname" . }}-controller
   labels:
     app: controller
-    {{- include "certmanager.defaultLabels" . | nindent 4 }}
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels 
                           $main.labels 
                           $pdb.labels) ) | nindent 4 }}
   annotations:
-    {{- include "certmanager.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $v.annotations 
                           $main.annotations 
@@ -29,7 +29,7 @@ spec:
   selector:
     matchLabels:
       app: controller
-      {{- include "certmanager.selectorLabels" . | nindent 6 }}
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   {{- with $pdb.minAvailable }}
   minAvailable: {{ . }}
   {{- end }}

@@ -11,10 +11,10 @@ Pod Spec
 {{- $svc := $main.service -}}
 {{- $ctr := $main.containers.controller -}}
 
-{{- include "certmanager.podSpec" ( dict "podSpec" $pod ) }}
-serviceAccountName: sa-{{ include "certmanager.fullname" . }}-controller
+{{- include "common.podSpec" ( dict "podSpec" $pod ) }}
+serviceAccountName: sa-{{ include "common.fullname" . }}-controller
 imagePullSecrets:
-  {{- include "certmanager.imagePullSecrets" ( 
+  {{- include "common.imagePullSecrets" ( 
       dict "imagePullSecrets" (concat $global.imagePullSecrets
                                       $pod.imagePullSecrets
                                       $img.imagePullSecrets )) | nindent 2 }}
@@ -32,8 +32,8 @@ containers:
   {{- . | toYaml | nindent 2 }}
   {{- end }}
   - name: cert-manager-controller
-    image: {{ include "certmanager.image" ( dict "img" $img "ctx" $ ) }}
-    imagePullPolicy: {{ include "certmanager.firstOf" (
+    image: {{ include "common.image" ( dict "img" $img "ctx" $ ) }}
+    imagePullPolicy: {{ include "common.firstOf" (
                         dict "items" ( list $global.imagePullPolicy 
                                             $img.imagePullPolicy )) }}
     {{- with $ctr.command }}

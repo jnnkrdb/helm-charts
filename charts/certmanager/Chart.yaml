@@ -15,3 +15,7 @@ keywords:
 - tls
 - certificates
 - automation
+dependencies:
+- name: common
+  repository: "https://jnnkrdb.github.io/helm-charts"
+  version: 1.0.1
