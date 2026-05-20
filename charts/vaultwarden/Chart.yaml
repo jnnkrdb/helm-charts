@@ -19,4 +19,4 @@ keywords:
 dependencies:
 - name: common
   repository: "https://jnnkrdb.github.io/helm-charts"
-  version: 1.0.0
+  version: 1.0.1
