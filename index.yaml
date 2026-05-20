@@ -3,6 +3,31 @@ entries:
   certmanager:
   - apiVersion: v2
     appVersion: v1.10.1
+    created: "2026-05-20T16:17:04.608518824Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying cert-manager.
+    digest: 4621d3f4994ff1936795ac46d9fc337eded2057baabe63ef926a4853fe85dff8
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - cert-manager
+    - kubernetes
+    - tls
+    - certificates
+    - automation
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: certmanager
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/certmanager-1.0.2/certmanager-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: v1.10.1
     created: "2026-05-20T13:44:17.51964018Z"
     dependencies:
     - name: common
@@ -155,4 +180,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-05-20T13:44:17.711181195Z"
+generated: "2026-05-20T16:17:04.608539785Z"
