@@ -4,21 +4,21 @@
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
-{{- if (eq (include "vaultwarden.workloadKind" ( dict "kind" $wl.kind )) "Pod") -}}
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "Pod") -}}
 --- # --------------------------------------------------------------------------------- Pod
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ include "vaultwarden.fullname" . }}
+  name: {{ include "common.fullname" . }}
   annotations:
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.annotations 
                           $main.annotations 
                           $wl.annotations
                           $pod.annotations) ) | nindent 4 }}
   labels: 
-    {{- include "vaultwarden.selectorLabels" . | nindent 4 }}
-    {{- include "vaultwarden.keyValues" ( 
+    {{- include "common.defaultSelectorLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $main.labels 
                           $wl.labels
