@@ -1,0 +1,10 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $extraDeploys := ( concat $global.extraDeploy
+                              $v.extraDeploy) -}}
+{{- if $extraDeploys }}
+{{- range $extraDeploys }}
+--- # --------------------------------------------------------------------------------- {{ .apiVersion }}/{{ .kind }}
+{{ . | toYaml }}
+{{- end }}
+{{- end }}

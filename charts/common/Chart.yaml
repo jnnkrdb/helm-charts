@@ -1,0 +1,12 @@
+apiVersion: v2
+name: common
+description: A Helm chart for common utilities.
+type: application
+version: 1.0.0
+home: "https://github.com/jnnkrdb/helm-charts"
+maintainers:
+- name: jnnkrdb
+  url: https://github.com/jnnkrdb
+keywords:
+- common
+- utilities
