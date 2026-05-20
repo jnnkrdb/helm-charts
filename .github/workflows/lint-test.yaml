@@ -103,7 +103,7 @@ jobs:
           for chart in charts/*/; do
             if [ -d "$chart/$CHART_UNITTEST_DIR" ]; then
               echo "Testing $chart"
-              helm dependency build charts/$chart
+              helm dependency build $chart
               helm unittest "$chart" \
                 --file "$chart/$CHART_UNITTEST_DIR/*.unit.yaml" \
                 --output-file results.xml \
@@ -141,7 +141,7 @@ jobs:
         run: |
           for chart in charts/*/; do
             echo "Updating dependencies for $chart"
-            helm dependency build charts/$chart
+            helm dependency build $chart
             if [ -d "$GENERAL_POLICIES_DIR" ]; then
               echo "Testing policies for $chart"
               helm template test "$chart" | conftest test - --policy "$GENERAL_POLICIES_DIR"
