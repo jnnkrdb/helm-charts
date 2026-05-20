@@ -12,9 +12,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      #- uses: actions/checkout@v6
+      #  with:
+      #    ref: ${{ github.head_ref }}
 
       - name: Determine bump type
         id: bump
@@ -28,7 +32,7 @@ jobs:
       - name: Bump versions
         run: |
           # Find changed charts
-          CHANGED=$(git diff --name-only main...HEAD | grep '^charts/' | cut -d'/' -f2 | sort -u)
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^charts/' | cut -d'/' -f2 | sort -u)
           
           for chart in $CHANGED; do
             if [ -f "charts/$chart/Chart.yaml" ]; then
