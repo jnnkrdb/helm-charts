@@ -11,7 +11,7 @@ kind: Deployment
 metadata:
   name: {{ include "common.fullname" . }}-applicationsetcontroller
   labels:
-    app.kubernetes.io/component: applicationsetcontroller
+    app.kubernetes.io/component: applicationset-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -43,7 +43,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/component: applicationsetcontroller
+      app.kubernetes.io/component: applicationset-controller
       {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
@@ -56,7 +56,7 @@ spec:
                               $wl.annotations
                               $pod.annotations) ) | nindent 8 }}
       labels: 
-        app.kubernetes.io/component: applicationsetcontroller
+        app.kubernetes.io/component: applicationset-controller
         {{- include "common.defaultSelectorLabels" . | nindent 8 }}
         {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 

@@ -1,15 +1,15 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.applicationsetcontroller -}}
+{{- $main := $v.applicationcontroller -}}
 {{- $svc := $main.service -}}
 
 --- # --------------------------------------------------------------------------------- NetworkPolicy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "common.fullname" . }}-applicationsetcontroller
+  name: {{ include "common.fullname" . }}-applicationcontroller
   labels:
-    app.kubernetes.io/component: applicationset-controller
+    app.kubernetes.io/component: application-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -23,7 +23,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: applicationset-controller
+      app.kubernetes.io/component: application-controller
       {{- include "common.defaultSelectorLabels" . | nindent 4 }}
   policyTypes:
     - Ingress
@@ -31,7 +31,5 @@ spec:
     - from:
         - namespaceSelector: {}
       ports:
-        - port: {{ $svc.ports.webhook.port }}
-          protocol: TCP
         - port: {{ $svc.ports.metrics.port }}
           protocol: TCP

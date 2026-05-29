@@ -12,7 +12,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "common.fullname" . }}-reposrv
   labels:
-    app.kubernetes.io/component: reposrv
+    app.kubernetes.io/component: repo-server
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 

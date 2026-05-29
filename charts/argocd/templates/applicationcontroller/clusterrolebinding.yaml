@@ -1,15 +1,15 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.reposrv -}}
+{{- $main := $v.applicationcontroller -}}
 {{- $rbac := $main.rbac -}}
 
---- # --------------------------------------------------------------------------------- ServiceAccount
-apiVersion: v1
-kind: ServiceAccount
+--- # --------------------------------------------------------------------------------- ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
-  name: sa-{{ include "common.fullname" . }}-reposrv
+  name: {{ include "common.fullname" . }}-applicationcontroller
   labels:
-    app.kubernetes.io/component: repo-server
+    app.kubernetes.io/component: application-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -22,6 +22,11 @@ metadata:
                           $v.annotations 
                           $main.annotations
                           $rbac.annotations ) ) | nindent 4 }}
-{{- with $rbac.serviceAccount.automountServiceAccountToken }}
-automountServiceAccountToken: {{ . }}
-{{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "common.fullname" . }}-applicationcontroller
+subjects:
+  - kind: ServiceAccount
+    name: sa-{{ include "common.fullname" . }}-applicationcontroller
+    namespace: {{ .Release.Namespace }}

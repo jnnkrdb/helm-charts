@@ -1,15 +1,15 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.applicationsetcontroller -}}
+{{- $main := $v.applicationcontroller -}}
 {{- $rbac := $main.rbac -}}
 
 --- # --------------------------------------------------------------------------------- Role
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "common.fullname" . }}-applicationsetcontroller
+  name: {{ include "common.fullname" . }}-applicationcontroller
   labels:
-    app.kubernetes.io/component: applicationset-controller
+    app.kubernetes.io/component: application-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -24,46 +24,6 @@ metadata:
                           $rbac.annotations ) ) | nindent 4 }}
 rules:
   - apiGroups:
-      - argoproj.io
-    resources:
-      - applications
-      - applicationsets
-      - applicationsets/finalizers
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - argoproj.io
-    resources:
-      - appprojects
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - argoproj.io
-    resources:
-      - applicationsets/status
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - create
-      - get
-      - list
-      - patch
-      - watch
-  - apiGroups:
       - ""
     resources:
       - secrets
@@ -73,21 +33,31 @@ rules:
       - list
       - watch
   - apiGroups:
+      - argoproj.io
+    resources:
+      - applications
+      - applicationsets
+      - appprojects
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - list
+  - apiGroups:
       - apps
-      - extensions
     resources:
       - deployments
     verbs:
       - get
       - list
       - watch
-  - apiGroups:
-      - coordination.k8s.io
-    resourceNames:
-      - 58ac56fa.applicationsets.argoproj.io
-    resources:
-      - leases
-    verbs:
-      - get
-      - update
-      - create

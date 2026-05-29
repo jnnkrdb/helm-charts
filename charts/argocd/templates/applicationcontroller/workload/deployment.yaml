@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.notificationscontroller -}}
+{{- $main := $v.applicationcontroller -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
@@ -9,9 +9,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "common.fullname" . }}-notificationscontroller
+  name: {{ include "common.fullname" . }}-applicationcontroller
   labels:
-    app.kubernetes.io/component: notifications-controller
+    app.kubernetes.io/component: application-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -43,7 +43,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/component: notifications-controller
+      app.kubernetes.io/component: application-controller
       {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
@@ -56,7 +56,7 @@ spec:
                               $wl.annotations
                               $pod.annotations) ) | nindent 8 }}
       labels: 
-        app.kubernetes.io/component: notifications-controller
+        app.kubernetes.io/component: application-controller
         {{- include "common.defaultSelectorLabels" . | nindent 8 }}
         {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 
@@ -65,5 +65,5 @@ spec:
                               $wl.labels
                               $pod.labels) ) | nindent 8 }}
     spec:
-      {{- include "argocd.notificationscontroller.pod" . | nindent 6 }}
+      {{- include "argocd.applicationcontroller.pod" . | nindent 6 }}
 {{- end -}}

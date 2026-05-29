@@ -1,17 +1,17 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.notificationscontroller -}}
+{{- $main := $v.applicationcontroller -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
-{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "Deployment") -}}
---- # --------------------------------------------------------------------------------- Deployment
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "DaemonSet") -}}
+--- # --------------------------------------------------------------------------------- DaemonSet
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: {{ include "common.fullname" . }}-notificationscontroller
+  name: {{ include "common.fullname" . }}-applicationcontroller
   labels:
-    app.kubernetes.io/component: notifications-controller
+    app.kubernetes.io/component: application-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -25,25 +25,19 @@ metadata:
                           $main.annotations 
                           $wl.annotations) ) | nindent 4 }}
 spec:
-  {{- with $wl.replicaCount }}
-  replicas: {{ . }}
-  {{- end }}
   {{- with $wl.revisionHistoryLimit }}
   revisionHistoryLimit: {{ . }}
   {{- end }}
   {{- with $wl.minReadySeconds }}
   minReadySeconds: {{ . }}
   {{- end }}
-  {{- with $wl.progressDeadlineSeconds }}
-  progressDeadlineSeconds: {{ . }}
-  {{- end }}
   {{- with $wl.updateStrategy }}
-  strategy:
+  updateStrategy:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/component: notifications-controller
+      app.kubernetes.io/component: application-controller
       {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
@@ -56,7 +50,7 @@ spec:
                               $wl.annotations
                               $pod.annotations) ) | nindent 8 }}
       labels: 
-        app.kubernetes.io/component: notifications-controller
+        app.kubernetes.io/component: application-controller
         {{- include "common.defaultSelectorLabels" . | nindent 8 }}
         {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 
@@ -65,5 +59,5 @@ spec:
                               $wl.labels
                               $pod.labels) ) | nindent 8 }}
     spec:
-      {{- include "argocd.notificationscontroller.pod" . | nindent 6 }}
+      {{- include "argocd.applicationcontroller.pod" . | nindent 6 }}
 {{- end -}}

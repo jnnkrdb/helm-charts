@@ -9,7 +9,7 @@ kind: NetworkPolicy
 metadata:
   name: {{ include "common.fullname" . }}-commitserver
   labels:
-    app.kubernetes.io/component: commitserver
+    app.kubernetes.io/component: commit-server
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -23,7 +23,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: commitserver
+      app.kubernetes.io/component: commit-server
       {{- include "common.defaultSelectorLabels" . | nindent 4 }}
   policyTypes:
     - Ingress
@@ -35,7 +35,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: applicationcontroller
+              app.kubernetes.io/component: application-controller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
       ports:
         - port: {{ $svce.ports.server.port }}

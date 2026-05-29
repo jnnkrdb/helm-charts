@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.applicationsetcontroller -}}
+{{- $main := $v.applicationcontroller -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
@@ -9,9 +9,9 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ include "common.fullname" . }}-applicationsetcontroller
+  name: {{ include "common.fullname" . }}-applicationcontroller
   labels:
-    app.kubernetes.io/component: applicationset-controller
+    app.kubernetes.io/component: application-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -26,5 +26,5 @@ metadata:
                           $main.annotations 
                           $wl.annotations) ) | nindent 4 }}
 spec:
-  {{- include "argocd.applicationsetcontroller.pod" . | nindent 2 }}
+  {{- include "argocd.applicationcontroller.pod" . | nindent 2 }}
 {{- end -}}

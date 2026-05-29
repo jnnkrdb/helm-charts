@@ -11,7 +11,7 @@ kind: Pod
 metadata:
   name: {{ include "common.fullname" . }}-notificationscontroller
   labels:
-    app.kubernetes.io/component: notificationscontroller
+    app.kubernetes.io/component: notifications-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 

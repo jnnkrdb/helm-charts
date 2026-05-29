@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.reposrv -}}
+{{- $main := $v.applicationcontroller -}}
 {{- $pdb := $main.pdb -}}
 {{- $wl := $main.workload -}}
 
@@ -10,9 +10,9 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "common.fullname" . }}-reposrv
+  name: {{ include "common.fullname" . }}-applicationcontroller
   labels:
-    app.kubernetes.io/component: repo-server
+    app.kubernetes.io/component: application-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -28,7 +28,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/component: repo-server
+      app.kubernetes.io/component: application-controller
       {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   {{- with $pdb.minAvailable }}
   minAvailable: {{ . }}

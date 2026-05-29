@@ -268,7 +268,7 @@ reposrv:
         - podAffinityTerm:
             labelSelector:
               matchLabels:
-                app.kubernetes.io/component: reposrv
+                app.kubernetes.io/component: repo-server
             topologyKey: kubernetes.io/hostname
           weight: 100
         - podAffinityTerm:
@@ -399,6 +399,180 @@ reposrv:
         hostPort: null
       metrics:
         port: 8084
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null # SingleStack
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+#--------------------------------------------------------------------------------------------------
+# ARGOCD APPLICATIONCONTROLLER CONFIGURATION
+applicationcontroller:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: StatefulSet # either Deployment, StatefulSet or DaemonSet
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: application-controller
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    applicationcontroller:
+      command: []
+      args:
+      - /usr/local/bin/argocd-application-controller
+      workingDir: /home/argocd
+      resources:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 250m
+          memory: 1Gi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      metrics:
+        port: 8082
         protocol: TCP
         nodePort: null
         hostPort: null
@@ -640,7 +814,7 @@ notificationscontroller:
         - podAffinityTerm:
             labelSelector:
               matchLabels:
-                app.kubernetes.io/component: notificationscontroller
+                app.kubernetes.io/component: notifications-controller
             topologyKey: kubernetes.io/hostname
           weight: 100
         - podAffinityTerm:
@@ -813,7 +987,7 @@ commitserver:
           podAffinityTerm:
             labelSelector:
               matchLabels:
-                app.kubernetes.io/component: commitserver
+                app.kubernetes.io/component: commit-server
             topologyKey: kubernetes.io/hostname
         - weight: 5
           podAffinityTerm:

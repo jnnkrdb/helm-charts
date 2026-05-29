@@ -11,7 +11,7 @@ kind: DaemonSet
 metadata:
   name: {{ include "common.fullname" . }}-commitserver
   labels:
-    app.kubernetes.io/component: commitserver
+    app.kubernetes.io/component: commit-server
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -37,7 +37,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/component: commitserver
+      app.kubernetes.io/component: commit-server
       {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
@@ -50,7 +50,7 @@ spec:
                               $wl.annotations
                               $pod.annotations) ) | nindent 8 }}
       labels: 
-        app.kubernetes.io/component: commitserver
+        app.kubernetes.io/component: commit-server
         {{- include "common.defaultSelectorLabels" . | nindent 8 }}
         {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 

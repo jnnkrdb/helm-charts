@@ -9,7 +9,7 @@ kind: NetworkPolicy
 metadata:
   name: {{ include "common.fullname" . }}-reposrv
   labels:
-    app.kubernetes.io/component: reposrv
+    app.kubernetes.io/component: repo-server
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -23,7 +23,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: reposrv
+      app.kubernetes.io/component: repo-server
       {{- include "common.defaultSelectorLabels" . | nindent 4 }}
   policyTypes:
     - Ingress
@@ -35,15 +35,15 @@ spec:
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: applicationcontroller
+              app.kubernetes.io/component: application-controller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: notificationscontroller
+              app.kubernetes.io/component: notifications-controller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: applicationsetcontroller
+              app.kubernetes.io/component: applicationset-controller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
       ports:
         - port: {{ $svc.ports.http.port }}

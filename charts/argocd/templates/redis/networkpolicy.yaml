@@ -35,11 +35,11 @@ spec:
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: reposrv
+              app.kubernetes.io/component: repo-server
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: applicationcontroller
+              app.kubernetes.io/component: application-controller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
       ports:
         - port: {{ $svc.ports.tcp.port }}
