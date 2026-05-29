@@ -1,0 +1,246 @@
+# --------------------------------------------------------------------------------------------------
+# GLOBAL CONFIGURATION
+global:
+  imagePullSecrets: []
+  imagePullPolicy: null
+  imageRegistry: null
+  storageClassName: null
+  ingressClassName: null
+  labels: {}
+  annotations: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# GENERAL CONFIGURATION
+labels: {}
+annotations: {}
+extraDeploy: []
+
+#--------------------------------------------------------------------------------------------------
+# IMAGE CONFIGURATION
+images:
+  argocd:
+    registry: docker.io
+    repository: argoproj/argo-cd
+    tag: v3.3.8
+    digest: null
+    imagePullPolicy: IfNotPresent
+    imagePullSecrets: []
+  dexidp:
+    registry: docker.io
+    repository: dexidp/dex
+    tag: v2.27.0
+    digest: null
+    imagePullPolicy: IfNotPresent
+    imagePullSecrets: []
+  redis:
+    registry: docker.io
+    repository: redis
+    tag: 8.2.3-alpine
+    digest: null
+    imagePullPolicy: IfNotPresent
+    imagePullSecrets: []
+
+#--------------------------------------------------------------------------------------------------
+# REDIS CONFIGURATION
+redis:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment # either Deployment, StatefulSet or DaemonSet
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: redis
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 999
+      seccompProfile:
+        type: RuntimeDefault
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    secretinit:
+      command:
+      - argocd
+      args:
+      - admin
+      - redis-initial-password
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+    redis:
+      command: []
+      args:
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --requirepass $(REDIS_PASSWORD)
+      workingDir: null
+      resources:
+        requests:
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        tcpSocket:
+          port: tcp
+        periodSeconds: 5
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        tcpSocket:
+          port: tcp
+        periodSeconds: 10
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 3
+      readinessProbe:
+        tcpSocket:
+          port: tcp
+        periodSeconds: 10
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      tcp:
+        port: 6379
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null # SingleStack
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+#--------------------------------------------------------------------------------------------------
+# DEXIDP CONFIGURATION
+dexidp:

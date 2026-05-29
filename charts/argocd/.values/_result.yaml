@@ -1,0 +1,345 @@
+---
+# Source: argocd/templates/redis/networkpolicy.yaml
+# --------------------------------------------------------------------------------- NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: release-name-argocd-redis
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: redis
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: server
+          app.kubernetes.io/name: release-name-argocd
+          app.kubernetes.io/instance: release-name
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: repo-server
+          app.kubernetes.io/name: release-name-argocd
+          app.kubernetes.io/instance: release-name
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: application-controller
+          app.kubernetes.io/name: release-name-argocd
+          app.kubernetes.io/instance: release-name
+    ports:
+    - port: 6379
+      protocol: TCP
+---
+# Source: argocd/templates/redis/workload/scheduling/poddisruptionbudget.yaml
+# --------------------------------------------------------------------------------- PodDisruptionBudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: release-name-argocd-redis
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: redis
+      app.kubernetes.io/name: release-name-argocd
+      app.kubernetes.io/instance: release-name
+  maxUnavailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+---
+# Source: argocd/templates/redis/serviceaccount.yaml
+# --------------------------------------------------------------------------------- ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-release-name-argocd-redis
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+automountServiceAccountToken: true
+---
+# Source: argocd/templates/redis/secret.yaml
+# --------------------------------------------------------------------------------- Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-argocd-redis-auth
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+type: Opaque
+data:
+  REDIS_PASSWORD: "MTBiSDJzcElab2lOUGlMUFZzVUVReG9pdVVicGRBUEM="
+---
+# Source: argocd/templates/redis/role.yaml
+# --------------------------------------------------------------------------------- Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: release-name-argocd-redis
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - argocd-redis
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+---
+# Source: argocd/templates/redis/rolebinding.yaml
+# --------------------------------------------------------------------------------- RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-name-argocd-redis
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-argocd-redis
+subjects:
+- kind: ServiceAccount
+  name: sa-release-name-argocd-redis
+  namespace: default
+---
+# Source: argocd/templates/redis/service.yaml
+# --------------------------------------------------------------------------------- Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-argocd-redis
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+spec:
+  type: ClusterIP
+  ports:
+  - name: "tcp"
+    protocol: TCP
+    targetPort: 6379
+    port: 6379
+  selector:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+---
+# Source: argocd/templates/redis/workload/deployment.yaml
+# --------------------------------------------------------------------------------- Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-argocd-redis
+  labels:
+    app.kubernetes.io/component: redis
+    helm.sh/chart: argocd-1.0.0
+    app.kubernetes.io/name: release-name-argocd
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v3.3.8"
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  minReadySeconds: 10
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: redis
+      app.kubernetes.io/name: release-name-argocd
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      annotations:
+        checksum/argocd-cm: "/config/configmap.argocd-cm.yaml"
+        checksum/argocd-cmd-params-cm: "/config/configmap.argocd-cmd-params-cm.yaml"
+        checksum/argocd-gpg-keys-cm: "/config/configmap.argocd-gpg-keys-cm.yaml"
+        checksum/argocd-rbac-cm: "/config/configmap.argocd-rbac-cm.yaml"
+        checksum/argocd-secret: "/config/secret.argocd-secret.yaml"
+        checksum/argocd-ssh-known-hosts-cm: "/config/configmap.argocd-ssh-known-hosts-cm.yaml"
+        checksum/argocd-tls-certs-cm: "/config/configmap.argocd-tls-certs-cm.yaml"
+        checksum/argocd-redis-auth: a0d89482a19915a7fec758d245535af36f28256dbd3416c400297842a8fdfd4f
+
+      labels:
+        app.kubernetes.io/component: redis
+        app.kubernetes.io/name: release-name-argocd
+        app.kubernetes.io/instance: release-name
+
+    spec:
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: redis
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/part-of: argocd
+              topologyKey: kubernetes.io/hostname
+            weight: 5
+      nodeSelector:
+        kubernetes.io/os: linux
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        seccompProfile:
+          type: RuntimeDefault
+
+      serviceAccountName: sa-release-name-argocd-redis
+      imagePullSecrets:
+
+      initContainers:
+      - name: secretinit
+        image: docker.io/argoproj/argo-cd:v3.3.8
+        imagePullPolicy: "IfNotPresent"
+        command:
+        - argocd
+        args:
+        - admin
+        - redis-initial-password
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+      containers:
+      - name: redis
+        image: docker.io/redis:8.2.3-alpine
+        imagePullPolicy: "IfNotPresent"
+        args:
+        - --save
+        - ""
+        - --appendonly
+        - "no"
+        - --requirepass $(REDIS_PASSWORD)
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            memory: 128Mi
+        envFrom:
+        - secretRef:
+            name: release-name-argocd-redis-auth
+        ports:
+        - name: "tcp"
+          containerPort: 6379
+          protocol: TCP
+        startupProbe:
+          failureThreshold: 30
+          periodSeconds: 5
+          successThreshold: 1
+          tcpSocket:
+            port: tcp
+          timeoutSeconds: 2
+        livenessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: tcp
+          timeoutSeconds: 2
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: tcp
+          timeoutSeconds: 2
