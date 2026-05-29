@@ -1,0 +1,90 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.applicationsetcontroller -}}
+{{- $rbac := $main.rbac -}}
+
+--- # --------------------------------------------------------------------------------- ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "common.fullname" . }}-applicationsetcontroller
+  labels:
+    app.kubernetes.io/component: applicationsetcontroller
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels
+                          $rbac.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations
+                          $rbac.annotations ) ) | nindent 4 }}
+rules:
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - applications
+      - applicationsets
+      - applicationsets/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - applicationsets/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - appprojects
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - get
+      - list
+      - patch
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - coordination.k8s.io
+    resourceNames:
+      - 58ac56fa.applicationsets.argoproj.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - update
+      - create
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
