@@ -1,0 +1,60 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.notificationscontroller -}}
+{{- $rbac := $main.rbac -}}
+
+--- # --------------------------------------------------------------------------------- Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "common.fullname" . }}-notificationscontroller
+  labels:
+    app.kubernetes.io/component: notificationscontroller
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels
+                          $rbac.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations
+                          $rbac.annotations ) ) | nindent 4 }}
+rules:
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - applications
+      - appprojects
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - secrets
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resourceNames:
+      - argocd-notifications-cm
+    resources:
+      - configmaps
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resourceNames:
+      - argocd-notifications-secret
+    resources:
+      - secrets
+    verbs:
+      - get

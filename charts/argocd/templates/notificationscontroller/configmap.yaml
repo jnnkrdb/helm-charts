@@ -1,0 +1,21 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.notificationscontroller -}}
+
+--- # --------------------------------------------------------------------------------- ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  labels:
+    app.kubernetes.io/component: notificationscontroller
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels
+                          $main.labels  ) ) | nindent 4 }}
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations  
+                          $v.annotations
+                          $main.annotations ) ) | nindent 4 }}
