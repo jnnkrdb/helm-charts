@@ -60,11 +60,7 @@ server:
     podManagementPolicy: null
     persistentVolumeClaimRetentionPolicy: null
     progressDeadlineSeconds: null
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 0
-        maxUnavailable: 1
+    updateStrategy: {}
 
   pod:
     # ------------- more advanced configs
@@ -253,11 +249,7 @@ reposrv:
     podManagementPolicy: null
     persistentVolumeClaimRetentionPolicy: null
     progressDeadlineSeconds: null
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 0
-        maxUnavailable: 1
+    updateStrategy: {}
 
   pod:
     # ------------- more advanced configs
@@ -630,11 +622,7 @@ applicationsetcontroller:
     podManagementPolicy: null
     persistentVolumeClaimRetentionPolicy: null
     progressDeadlineSeconds: null
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 0
-        maxUnavailable: 1
+    updateStrategy: {}
 
   pod:
     # ------------- more advanced configs
@@ -799,11 +787,7 @@ notificationscontroller:
     podManagementPolicy: null
     persistentVolumeClaimRetentionPolicy: null
     progressDeadlineSeconds: null
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 0
-        maxUnavailable: 1
+    updateStrategy: {}
 
   pod:
     # ------------- more advanced configs
@@ -971,11 +955,7 @@ commitserver:
     podManagementPolicy: null
     persistentVolumeClaimRetentionPolicy: null
     progressDeadlineSeconds: null
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 0
-        maxUnavailable: 1
+    updateStrategy: {}
 
   pod:
     # ------------- more advanced configs
@@ -1149,11 +1129,7 @@ redis:
     podManagementPolicy: null
     persistentVolumeClaimRetentionPolicy: null
     progressDeadlineSeconds: null
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 0
-        maxUnavailable: 1
+    updateStrategy: {}
 
   pod:
     # ------------- more advanced configs
@@ -1348,11 +1324,7 @@ dexidp:
     podManagementPolicy: null
     persistentVolumeClaimRetentionPolicy: null
     progressDeadlineSeconds: null
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 0
-        maxUnavailable: 1
+    updateStrategy: {}
 
   pod:
     # ------------- more advanced configs
