@@ -1,15 +1,15 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.redis -}}
+{{- $main := $v.reposrv -}}
 {{- $svc := $main.service -}}
 
 --- # --------------------------------------------------------------------------------- NetworkPolicy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "common.fullname" . }}-redis
+  name: {{ include "common.fullname" . }}-reposrv
   labels:
-    app.kubernetes.io/component: redis
+    app.kubernetes.io/component: reposrv
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -23,7 +23,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: redis
+      app.kubernetes.io/component: reposrv
       {{- include "common.defaultSelectorLabels" . | nindent 4 }}
   policyTypes:
     - Ingress
@@ -35,12 +35,20 @@ spec:
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: reposrv
+              app.kubernetes.io/component: applicationcontroller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: applicationcontroller
+              app.kubernetes.io/component: notificationscontroller
+              {{- include "common.defaultSelectorLabels" . | nindent 14 }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: applicationsetcontroller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
       ports:
-        - port: {{ $svc.ports.tcp.port }}
+        - port: {{ $svc.ports.http.port }}
           protocol: TCP
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: {{ $svc.ports.metrics.port }}

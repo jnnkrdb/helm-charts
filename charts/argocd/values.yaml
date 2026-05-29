@@ -125,27 +125,6 @@ server:
     extraEnvFrom: []
 
   containers:
-    copyutil:
-      command:
-      - /bin/cp
-      args:
-      - -n
-      - /usr/local/bin/argocd
-      - /shared/argocd-dex
-      workingDir: null
-      resources: {}
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-          - ALL
-        readOnlyRootFilesystem: true
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
-      extraEnvs: []
-      extraEnvFrom: []
-      extraVolumeMounts: []
     server:
       command: []
       args:
@@ -223,6 +202,209 @@ server:
     tls:
       enabled: false
       secretName: null
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+#--------------------------------------------------------------------------------------------------
+# ARGOCD REPOSERVER CONFIGURATION
+reposrv:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment # either Deployment, StatefulSet or DaemonSet
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: reposrv
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    copyutil:
+      command:
+      - sh
+      - -c
+      args:
+      - /bin/cp --update=none /usr/local/bin/argocd /var/run/argocd/argocd && /bin/ln -s /var/run/argocd/argocd /var/run/argocd/argocd-cmp-server
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+    reposrv:
+      command: []
+      args:
+      - /usr/local/bin/argocd-repo-server
+      workingDir: null
+      resources:
+        limits:
+          memory: 1024Mi
+        requests:
+          cpu: 200m
+          memory: 1024Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: metrics
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      http:
+        port: 8081
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      metrics:
+        port: 8084
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null # SingleStack
+    ipFamilies: []
 
   pdb:
     enabled: true
