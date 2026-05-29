@@ -10,10 +10,10 @@ maintainers:
 - name: jnnkrdb
   url: https://github.com/jnnkrdb
 keywords:
+- argoproj
 - argocd
 - gitops
 - cd
-- continuous-delivery
 - continuous-deployment
 dependencies:
 - name: common
