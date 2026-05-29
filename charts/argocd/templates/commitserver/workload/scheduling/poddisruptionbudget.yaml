@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.notificationscontroller -}}
+{{- $main := $v.commitserver -}}
 {{- $pdb := $main.pdb -}}
 {{- $wl := $main.workload -}}
 
@@ -10,9 +10,9 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "common.fullname" . }}-notificationscontroller
+  name: {{ include "common.fullname" . }}-commitserver
   labels:
-    app.kubernetes.io/component: notificationscontroller
+    app.kubernetes.io/component: commitserver
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -28,7 +28,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/component: notificationscontroller
+      app.kubernetes.io/component: commitserver
       {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   {{- with $pdb.minAvailable }}
   minAvailable: {{ . }}

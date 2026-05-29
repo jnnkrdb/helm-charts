@@ -1,0 +1,30 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.commitserver -}}
+{{- $wl := $main.workload -}}
+{{- $pod := $main.pod -}}
+
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "Pod") -}}
+--- # --------------------------------------------------------------------------------- Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "common.fullname" . }}-commitserver
+  labels:
+    app.kubernetes.io/component: commitserver
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels 
+                          $wl.labels) ) | nindent 4 }}
+  annotations:
+    {{- include "argocd.configs.checksums" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations 
+                          $wl.annotations) ) | nindent 4 }}
+spec:
+  {{- include "argocd.commitserver.pod" . | nindent 2 }}
+{{- end -}}

@@ -1,0 +1,42 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.commitserver -}}
+{{- $svc := $main.service -}}
+
+--- # --------------------------------------------------------------------------------- NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "common.fullname" . }}-commitserver
+  labels:
+    app.kubernetes.io/component: commitserver
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations ) ) | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: commitserver
+      {{- include "common.defaultSelectorLabels" . | nindent 4 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: {{ $svc.ports.metrics.port }}
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: applicationcontroller
+              {{- include "common.defaultSelectorLabels" . | nindent 14 }}
+      ports:
+        - port: {{ $svce.ports.server.port }}
+          protocol: TCP
