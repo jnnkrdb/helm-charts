@@ -1016,7 +1016,7 @@ commitserver:
     extraEnvFrom: []
 
   containers:
-    notificationscontroller:
+    commitserver:
       command: []
       args:
       - /usr/local/bin/argocd-commit-server
