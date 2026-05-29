@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.redis -}}
+{{- $main := $v.dexidp -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 {{- $svc := $main.service -}}
@@ -11,9 +11,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "common.fullname" . }}-redis-headless
+  name: {{ include "common.fullname" . }}-dexidp-headless
   labels:
-    app.kubernetes.io/component: redis
+    app.kubernetes.io/component: dexidp
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -35,16 +35,16 @@ spec:
       port: {{ $portSpecs.port }}
     {{- end }}
   selector:
-    app.kubernetes.io/component: redis
+    app.kubernetes.io/component: dexidp
     {{- include "common.defaultSelectorLabels" . | nindent 4 }}
 {{- end }}
 --- # --------------------------------------------------------------------------------- Statefulset
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "common.fullname" . }}-redis
+  name: {{ include "common.fullname" . }}-dexidp
   labels:
-    app.kubernetes.io/component: redis
+    app.kubernetes.io/component: dexidp
     {{- include "common.defaultLabels" . | nindent 4 }}
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
@@ -59,7 +59,7 @@ metadata:
                           $wl.annotations) ) | nindent 4 }}
 spec:
   {{- if not $wl.serviceName }}
-  serviceName: {{ include "common.fullname" . }}-redis-headless
+  serviceName: {{ include "common.fullname" . }}-dexidp-headless
   {{- else }}
   {{- with $wl.serviceName }}
   serviceName: {{ . | quote }}
@@ -91,7 +91,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/component: redis
+      app.kubernetes.io/component: dexidp
       {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   template:
     metadata:
@@ -104,7 +104,7 @@ spec:
                               $wl.annotations
                               $pod.annotations) ) | nindent 8 }}
       labels: 
-        app.kubernetes.io/component: redis
+        app.kubernetes.io/component: dexidp
         {{- include "common.defaultSelectorLabels" . | nindent 8 }}
         {{- include "common.keyValues" ( 
             dict "kvs" ( list $global.labels 
@@ -113,5 +113,5 @@ spec:
                               $wl.labels
                               $pod.labels) ) | nindent 8 }}
     spec:
-      {{- include "argocd.redis.pod" . | nindent 6 }}
+      {{- include "argocd.dexidp.pod" . | nindent 6 }}
 {{- end -}}
