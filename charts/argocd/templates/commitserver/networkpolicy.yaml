@@ -38,5 +38,5 @@ spec:
               app.kubernetes.io/component: application-controller
               {{- include "common.defaultSelectorLabels" . | nindent 14 }}
       ports:
-        - port: {{ $svce.ports.server.port }}
+        - port: {{ $svc.ports.server.port }}
           protocol: TCP
