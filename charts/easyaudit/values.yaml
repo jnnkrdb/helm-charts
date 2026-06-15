@@ -109,7 +109,7 @@ containers:
     extraVolumeMounts: []
     startupProbe:
       httpGet:
-        path: /
+        path: /health/livez
         port: http
       timeoutSeconds: 1
       periodSeconds: 5
@@ -117,7 +117,7 @@ containers:
       failureThreshold: 30
     livenessProbe:
       httpGet:
-        path: /
+        path: /health/livez
         port: http
       timeoutSeconds: 1
       periodSeconds: 10
@@ -125,7 +125,7 @@ containers:
       failureThreshold: 10
     readinessProbe:
       httpGet:
-        path: /
+        path: /health/readyz
         port: http
       timeoutSeconds: 1
       periodSeconds: 10
