@@ -108,6 +108,32 @@ entries:
   easyaudit:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-06-15T19:12:58.117290034Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying easy-audit.
+    digest: 254c55994211bdff22659cf9a14cf99db57d179acfdab27b9ef3ba9c358b58bd
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - easy-audit
+    - kubernetes
+    - audit
+    - logging
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: easyaudit
+    sources:
+    - https://github.com/jnnkrdb/easy-audit
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/easyaudit-1.0.2/easyaudit-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2026-06-15T18:36:11.364363672Z"
     dependencies:
     - name: common
@@ -233,4 +259,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-06-15T18:36:11.364398836Z"
+generated: "2026-06-15T19:12:58.117311264Z"
