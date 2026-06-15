@@ -23,7 +23,7 @@ extraDeploy: []
 images:
   easyaudit:
     registry: ghcr.io
-    repository: jnnkrdb/easyaudit
+    repository: jnnkrdb/easy-audit
     tag: latest
     digest: null
     imagePullPolicy: Always
@@ -156,7 +156,7 @@ ingress:
   labels: {}
   annotations: {}
   ingressClassName: null
-  host: easyaudit.example.com
+  host: easy-audit.example.com
   tls:
     enabled: false
     secretName: null
@@ -166,7 +166,7 @@ ingress:
 persistence:
   enabled: false
   useHostpath: false
-  mountPath: /opt/easyaudit/data
+  mountPath: /opt/easy-audit/data
   pvc:
     annotations: {}
     labels: {}
@@ -177,7 +177,7 @@ persistence:
     volumeName: null
     volumeMode: null
   hostPath:
-    path: /var/tmp/easyaudit
+    path: /var/tmp/easy-audit
     type: null
 
 # --------------------------------------------------------------------------------------------------
