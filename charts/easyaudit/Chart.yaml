@@ -2,7 +2,7 @@ apiVersion: v2
 name: easyaudit
 description: A Helm chart for deploying easy-audit.
 type: application
-version: 1.0.1
+version: 1.0.2
 appVersion: 1.0.0
 kubeVersion: ">=1.25.0-0"
 home: "https://github.com/jnnkrdb/helm-charts"
