@@ -4,6 +4,7 @@
 {{- $hpa := $main.hpa -}}
 
 {{- if not $wl.replicaCount -}}
+{{- if $hpa.enabled -}}
 {{- if has (include "common.workloadKind" ( dict "kind" $wl.kind )) ( list "Deployment" "StatefulSet" ) -}}
 --- # --------------------------------------------------------------------------------- HorizontalPodAutoscaler
 apiVersion: autoscaling/v2
@@ -32,5 +33,6 @@ spec:
   metrics:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
+{{- end -}}
 {{- end -}}
 {{- end -}}

@@ -199,6 +199,7 @@ pdb:
 # --------------------------------------------------------------------------------------------------
 # HORIZONTAL POD AUTOSCALER CONFIGURATION
 hpa:
+  enabled: true
   annotations: {}
   labels: {}
   minReplicas: 1
