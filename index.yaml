@@ -3,6 +3,31 @@ entries:
   certmanager:
   - apiVersion: v2
     appVersion: v1.10.1
+    created: "2026-06-22T09:54:31.084768718Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying cert-manager.
+    digest: 334d62c354550ac18e9433a6b4479d15d03397d563772796d0f0f234658805b3
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - cert-manager
+    - kubernetes
+    - tls
+    - certificates
+    - automation
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: certmanager
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/certmanager-1.0.3/certmanager-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.10.1
     created: "2026-05-20T16:17:04.608518824Z"
     dependencies:
     - name: common
@@ -108,6 +133,32 @@ entries:
   easyaudit:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-06-22T09:54:31.32430374Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying easy-audit.
+    digest: b1a1eee146776c3ced5f52276944383b85f4325e669fb25d22f4c0fa884f2414
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - easy-audit
+    - kubernetes
+    - audit
+    - logging
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: easyaudit
+    sources:
+    - https://github.com/jnnkrdb/easy-audit
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/easyaudit-1.0.3/easyaudit-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2026-06-15T19:12:58.117290034Z"
     dependencies:
     - name: common
@@ -187,6 +238,32 @@ entries:
   vaultwarden:
   - apiVersion: v2
     appVersion: 1.36.0
+    created: "2026-06-22T09:54:31.572651531Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying Vaultwarden.
+    digest: 62f364a214c27cfa98876f645135f7d9bfc8ac98a4116f85d9ce5c8d04a6a73f
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - vaultwarden
+    - password
+    - manager
+    - passwordsafe
+    - vault
+    - bitwarden
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: vaultwarden
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.3/vaultwarden-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: 1.36.0
     created: "2026-05-20T13:44:17.711163602Z"
     dependencies:
     - name: common
@@ -259,4 +336,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-06-15T19:12:58.117311264Z"
+generated: "2026-06-22T09:54:31.572707987Z"
