@@ -146,6 +146,7 @@ cainjector:
   # --------------------------------------------------------------------------------------------------
   # HORIZONTAL POD AUTOSCALER CONFIGURATION
   hpa:
+    enabled: true
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -297,6 +298,7 @@ controller:
   # --------------------------------------------------------------------------------------------------
   # HORIZONTAL POD AUTOSCALER CONFIGURATION
   hpa:
+    enabled: true
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -481,6 +483,7 @@ webhook:
   # --------------------------------------------------------------------------------------------------
   # HORIZONTAL POD AUTOSCALER CONFIGURATION
   hpa:
+    enabled: true
     annotations: {}
     labels: {}
     minReplicas: 1
