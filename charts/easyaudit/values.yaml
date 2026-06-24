@@ -95,7 +95,7 @@ pod:
 # CONTAINER CONFIGURATION
 containers:
   easyaudit:
-    command: []
+    command: [ eactl, serve ]
     args: []
     workingDir: null
     resources:
