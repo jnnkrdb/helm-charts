@@ -95,7 +95,9 @@ pod:
 # CONTAINER CONFIGURATION
 containers:
   easyaudit:
-    command: []
+    command:
+      - eactl
+      - serve
     args: []
     workingDir: null
     resources:
@@ -166,7 +168,7 @@ ingress:
 persistence:
   enabled: false
   useHostpath: false
-  mountPath: /opt/easy-audit/data
+  mountPath: /var/easy-audit
   pvc:
     annotations: {}
     labels: {}
