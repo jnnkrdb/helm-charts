@@ -1,0 +1,28 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.argocd -}}
+{{- $cm := (index $main "argocd-ssh-known-hosts-cm") -}}
+
+{{- if $cm.enabled -}}
+--- # --------------------------------------------------------------------------------- ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: argocd-ssh-known-hosts-cm
+  labels:
+    app.kubernetes.io/name: argocd-ssh-known-hosts-cm
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels ) ) | nindent 4 }}
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations ) ) | nindent 4 }}
+{{- if $cm.data }}
+data:
+  {{- range $key, $value := $cm.data }}
+  {{- if $value }}
+  {{ $key }}: {{ tpl ($value | toString) $ | quote }}
+  {{- end }}
+  {{- end }}
+{{- end }}

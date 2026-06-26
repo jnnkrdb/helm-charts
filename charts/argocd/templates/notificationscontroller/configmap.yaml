@@ -1,7 +1,11 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
 {{- $main := $v.notificationscontroller -}}
+{{- $cm := (index $main.config "argocd-notifications-cm") -}}
 
+
+{{- if $main.enabled -}}
+{{- if $cm.enabled -}}
 --- # --------------------------------------------------------------------------------- ConfigMap
 apiVersion: v1
 kind: ConfigMap
@@ -19,3 +23,9 @@ metadata:
         dict "kvs" ( list $global.annotations  
                           $v.annotations
                           $main.annotations ) ) | nindent 4 }}
+{{- with $cm.data }}
+data:
+  {{- . | toYaml | nindent 2 }}
+{{- end }}
+{{- end -}}
+{{- end -}}
