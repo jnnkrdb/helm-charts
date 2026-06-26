@@ -25,37 +25,37 @@ volumes:
                   $pod.extraVolumes) }}
   {{- . | toYaml | nindent 2 }}
   {{- end }}
-  - name: ssh-known-hosts
-    configMap:
-      name:  argocd-ssh-known-hosts-cm
-  - name: tls-certs
-    configMap:
+  - configMap:
+      name: argocd-ssh-known-hosts-cm
+    name: ssh-known-hosts
+  - configMap:
       name: argocd-tls-certs-cm
-  - name: gpg-keys
-    configMap:
-      name:  argocd-gpg-keys-cm
-  - name: gpg-keyring
-    emptyDir: {}
-  - name: tmp
-    emptyDir: {}
-  - name: repo-server-tls
+    name: tls-certs
+  - configMap:
+      name: argocd-gpg-keys-cm
+    name: gpg-keys
+  - emptyDir: {}
+    name: gpg-keyring
+  - emptyDir: {}
+    name: tmp
+  - name: argocd-repo-server-tls
     secret:
-      secretName: argocd-repo-server-tls
       items:
-        - key: tls.crt
-          path: tls.crt
-        - key: tls.key
-          path: tls.key
-        - key: ca.crt
-          path: ca.crt
-      optional: true      
-  - name: argocd-cmd-params-cm
-    configMap:
+      - key: tls.crt
+        path: tls.crt
+      - key: tls.key
+        path: tls.key
+      - key: ca.crt
+        path: ca.crt
+      optional: true
+      secretName: argocd-repo-server-tls
+  - configMap:
+      items:
+      - key: applicationsetcontroller.profile.enabled
+        path: profiler.enabled
       name: argocd-cmd-params-cm
       optional: true
-      items:
-        - key: applicationsetcontroller.profile.enabled
-          path: profiler.enabled
+    name: argocd-cmd-params-cm
 {{- with (concat $pod.initContainers) }}
 initContainers:
   {{- . | toYaml | nindent 2 }}
@@ -93,6 +93,12 @@ containers:
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
+      - name: GRPC_ENABLE_TXT_SERVICE_CONFIG
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.grpc.enable.txt.service.config
+            name: argocd-cmd-params-cm
+            optional: true
       - name: ARGOCD_APPLICATIONSET_CONTROLLER_GLOBAL_PRESERVED_ANNOTATIONS
         valueFrom:
           configMapKeyRef:
@@ -155,6 +161,48 @@ containers:
         valueFrom:
           configMapKeyRef:
             key: log.format.timestamp
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_CLIENT_QPS
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.k8s.client.qps
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_CLIENT_BURST
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.k8s.client.burst
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_CLIENT_MAX_IDLE_CONNECTIONS
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.k8s.client.max.idle.connections
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TCP_TIMEOUT
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.k8s.tcp.timeout
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TCP_KEEPALIVE
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.k8s.tcp.keepalive
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TLS_HANDSHAKE_TIMEOUT
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.k8s.tls.handshake.timeout
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TCP_IDLE_TIMEOUT
+        valueFrom:
+          configMapKeyRef:
+            key: applicationsetcontroller.k8s.tcp.idle.timeout
             name: argocd-cmd-params-cm
             optional: true
       - name: ARGOCD_APPLICATIONSET_CONTROLLER_DRY_RUN
@@ -279,18 +327,18 @@ containers:
                         $global.extraVolumeMounts) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: ssh-known-hosts
-        mountPath: /app/config/ssh
-      - name: tls-certs
-        mountPath: /app/config/tls
-      - name: gpg-keys
-        mountPath: /app/config/gpg/source
-      - name: gpg-keyring
-        mountPath: /app/config/gpg/keys
-      - name: tmp
-        mountPath: /tmp
-      - name: repo-server-tls
-        mountPath: /app/config/reposerver/tls
+      - mountPath: /app/config/ssh
+        name: ssh-known-hosts
+      - mountPath: /app/config/tls
+        name: tls-certs
+      - mountPath: /app/config/gpg/source
+        name: gpg-keys
+      - mountPath: /app/config/gpg/keys
+        name: gpg-keyring
+      - mountPath: /tmp
+        name: tmp
+      - mountPath: /app/config/reposerver/tls
+        name: argocd-repo-server-tls
       - mountPath: /home/argocd/params
         name: argocd-cmd-params-cm
     {{- with $ctrs.applicationsetcontroller.startupProbe }}

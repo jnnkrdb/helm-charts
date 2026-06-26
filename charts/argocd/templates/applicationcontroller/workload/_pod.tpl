@@ -25,28 +25,28 @@ volumes:
                   $pod.extraVolumes) }}
   {{- . | toYaml | nindent 2 }}
   {{- end }}
-  - name: argocd-home
-    emptyDir: {}
-  - name: argocd-application-controller-tmp
-    emptyDir: {}
-  - name: repo-server-tls
+  - emptyDir: {}
+    name: argocd-home
+  - emptyDir: {}
+    name: argocd-application-controller-tmp
+  - name: argocd-repo-server-tls
     secret:
+      items:
+      - key: tls.crt
+        path: tls.crt
+      - key: tls.key
+        path: tls.key
+      - key: ca.crt
+        path: ca.crt
+      optional: true
       secretName: argocd-repo-server-tls
+  - configMap:
       items:
-        - key: tls.crt
-          path: tls.crt
-        - key: tls.key
-          path: tls.key
-        - key: ca.crt
-          path: ca.crt
+      - key: controller.profile.enabled
+        path: profiler.enabled
+      name: argocd-cmd-params-cm
       optional: true
-  - name:  cmd-params-cm
-    configMap:
-      name:  argocd-cmd-params-cm
-      items:
-        - key: controller.profile.enabled
-          path: profiler.enabled
-      optional: true
+    name: argocd-cmd-params-cm
 {{- with (concat $pod.initContainers) }}
 initContainers:
   {{- . | toYaml | nindent 2 }}
@@ -84,10 +84,12 @@ containers:
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: NAMESPACE
+      - name: GRPC_ENABLE_TXT_SERVICE_CONFIG
         valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
+          configMapKeyRef:
+            key: controller.grpc.enable.txt.service.config
+            name: argocd-cmd-params-cm
+            optional: true
       - name: ARGOCD_CONTROLLER_REPLICAS
         value: "1"
       - name: ARGOCD_RECONCILIATION_TIMEOUT
@@ -154,6 +156,48 @@ containers:
         valueFrom:
           configMapKeyRef:
             key: log.format.timestamp
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_CLIENT_QPS
+        valueFrom:
+          configMapKeyRef:
+            key: controller.k8s.client.qps
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_CLIENT_BURST
+        valueFrom:
+          configMapKeyRef:
+            key: controller.k8s.client.burst
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_CLIENT_MAX_IDLE_CONNECTIONS
+        valueFrom:
+          configMapKeyRef:
+            key: controller.k8s.client.max.idle.connections
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TCP_TIMEOUT
+        valueFrom:
+          configMapKeyRef:
+            key: controller.k8s.tcp.timeout
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TCP_KEEPALIVE
+        valueFrom:
+          configMapKeyRef:
+            key: controller.k8s.tcp.keepalive
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TLS_HANDSHAKE_TIMEOUT
+        valueFrom:
+          configMapKeyRef:
+            key: controller.k8s.tls.handshake.timeout
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_K8S_TCP_IDLE_TIMEOUT
+        valueFrom:
+          configMapKeyRef:
+            key: controller.k8s.tcp.idle.timeout
             name: argocd-cmd-params-cm
             optional: true
       - name: ARGOCD_APPLICATION_CONTROLLER_METRICS_CACHE_EXPIRATION
@@ -366,14 +410,14 @@ containers:
                         $global.extraVolumeMounts) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: repo-server-tls
-        mountPath: /app/config/controller/tls
-      - name: argocd-home
-        mountPath: /home/argocd
-      - name:  cmd-params-cm
-        mountPath: /home/argocd/params
-      - name: argocd-application-controller-tmp
-        mountPath: /tmp
+      - mountPath: /app/config/controller/tls
+        name: argocd-repo-server-tls
+      - mountPath: /home/argocd
+        name: argocd-home
+      - mountPath: /home/argocd/params
+        name: argocd-cmd-params-cm
+      - mountPath: /tmp
+        name: argocd-application-controller-tmp
     {{- with $ctrs.applicationcontroller.startupProbe }}
     startupProbe:
       {{- . | toYaml | nindent 6 }}

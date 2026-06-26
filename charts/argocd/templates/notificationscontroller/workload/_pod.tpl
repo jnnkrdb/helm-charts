@@ -25,20 +25,20 @@ volumes:
                   $pod.extraVolumes) }}
   {{- . | toYaml | nindent 2 }}
   {{- end }}
-  - name: tls-certs
-    configMap:
+  - configMap:
       name: argocd-tls-certs-cm
-  - name: repo-server-tls
+    name: tls-certs
+  - name: argocd-repo-server-tls
     secret:
-      secretName: argocd-repo-server-tls
       items:
-        - key: tls.crt
-          path: tls.crt
-        - key: tls.key
-          path: tls.key
-        - key: ca.crt
-          path: ca.crt
+      - key: tls.crt
+        path: tls.crt
+      - key: tls.key
+        path: tls.key
+      - key: ca.crt
+        path: ca.crt
       optional: true
+      secretName: argocd-repo-server-tls
 {{- with (concat $pod.initContainers) }}
 initContainers:
   {{- . | toYaml | nindent 2 }}
@@ -76,10 +76,6 @@ containers:
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
       - name: ARGOCD_NOTIFICATIONS_CONTROLLER_LOGFORMAT
         valueFrom:
           configMapKeyRef:
@@ -90,6 +86,12 @@ containers:
         valueFrom:
           configMapKeyRef:
             key: notificationscontroller.log.level
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: ARGOCD_NOTIFICATION_CONTROLLER_PROCESSORS_COUNT
+        valueFrom:
+          configMapKeyRef:
+            key: notificationscontroller.processors.count
             name: argocd-cmd-params-cm
             optional: true
       - name: ARGOCD_LOG_FORMAT_TIMESTAMP
@@ -138,10 +140,10 @@ containers:
                         $global.extraVolumeMounts) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: tls-certs
-        mountPath: /app/config/tls
-      - name: repo-server-tls
-        mountPath: /app/config/reposerver/tls
+      - mountPath: /app/config/tls
+        name: tls-certs
+      - mountPath: /app/config/reposerver/tls
+        name: argocd-repo-server-tls
     {{- with $ctrs.notificationscontroller.startupProbe }}
     startupProbe:
       {{- . | toYaml | nindent 6 }}

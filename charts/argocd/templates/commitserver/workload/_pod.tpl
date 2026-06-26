@@ -86,10 +86,12 @@ containers:
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: NAMESPACE
+      - name: GRPC_ENABLE_TXT_SERVICE_CONFIG
         valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
+          configMapKeyRef:
+            name: argocd-cmd-params-cm
+            key: commitserver.grpc.enable.txt.service.config
+            optional: true
       - name: ARGOCD_COMMIT_SERVER_LISTEN_ADDRESS
         valueFrom:
           configMapKeyRef:

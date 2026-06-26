@@ -55,6 +55,13 @@ volumes:
     name: var-files
   - emptyDir: {}
     name: plugins
+  - configMap:
+      items:
+      - key: reposerver.profile.enabled
+        path: profiler.enabled
+      name: argocd-cmd-params-cm
+      optional: true
+    name: argocd-cmd-params-cm
 initContainers:
   {{- with (concat $pod.initContainers) }}
   {{- . | toYaml | nindent 2 }}
@@ -134,10 +141,12 @@ containers:
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: NAMESPACE
+      - name: GRPC_ENABLE_TXT_SERVICE_CONFIG
         valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
+          configMapKeyRef:
+            key: reposerver.grpc.enable.txt.service.config
+            name: argocd-cmd-params-cm
+            optional: true
       - name: ARGOCD_RECONCILIATION_TIMEOUT
         valueFrom:
           configMapKeyRef:
@@ -366,6 +375,12 @@ containers:
             key: reposerver.include.hidden.directories
             name: argocd-cmd-params-cm
             optional: true
+      - name: ARGOCD_HELM_USER_AGENT
+        valueFrom:
+          configMapKeyRef:
+            key: reposerver.helm.user.agent
+            name: argocd-cmd-params-cm
+            optional: true
       - name: HELM_CACHE_HOME
         value: /helm-working-dir
       - name: HELM_CONFIG_HOME
@@ -409,7 +424,7 @@ containers:
       - mountPath: /helm-working-dir
         name: helm-working-dir
       - mountPath: /home/argocd/cmp-server/plugins
-        name: plugins 
+        name: plugins
     {{- with $ctrs.reposerver.startupProbe }}
     startupProbe:
       {{- . | toYaml | nindent 6 }}

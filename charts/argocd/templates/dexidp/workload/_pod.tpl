@@ -122,10 +122,6 @@ containers:
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
-      - name: NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
       - name: ARGOCD_DEX_SERVER_LOGFORMAT
         valueFrom:
           configMapKeyRef:
@@ -148,6 +144,12 @@ containers:
         valueFrom:
           configMapKeyRef:
             key: dexserver.disable.tls
+            name: argocd-cmd-params-cm
+            optional: true
+      - name: DEX_CONTINUE_ON_CONNECTOR_FAILURE
+        valueFrom:
+          configMapKeyRef:
+            key: dexserver.connector.failure.continue
             name: argocd-cmd-params-cm
             optional: true
     {{- with ( concat $ctrs.dexidp.extraEnvFrom 
