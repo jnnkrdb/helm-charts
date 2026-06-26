@@ -24,7 +24,7 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/component: redis
-      {{- include "common.defaultSelectorLabels" . | nindent 4 }}
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   policyTypes:
     - Ingress
   ingress:

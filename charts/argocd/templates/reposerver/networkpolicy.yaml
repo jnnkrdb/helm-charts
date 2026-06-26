@@ -1,13 +1,13 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.reposrv -}}
+{{- $main := $v.reposerver -}}
 {{- $svc := $main.service -}}
 
 --- # --------------------------------------------------------------------------------- NetworkPolicy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "common.fullname" . }}-reposrv
+  name: {{ include "common.fullname" . }}-reposerver
   labels:
     app.kubernetes.io/component: repo-server
     {{- include "common.defaultLabels" . | nindent 4 }}
@@ -24,7 +24,7 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/component: repo-server
-      {{- include "common.defaultSelectorLabels" . | nindent 4 }}
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
   policyTypes:
     - Ingress
   ingress:
