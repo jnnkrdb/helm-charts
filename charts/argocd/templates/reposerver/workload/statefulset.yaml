@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.reposrv -}}
+{{- $main := $v.reposerver -}}
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 {{- $svc := $main.service -}}
@@ -11,7 +11,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "common.fullname" . }}-reposrv-headless
+  name: {{ include "common.fullname" . }}-reposerver-headless
   labels:
     app.kubernetes.io/component: repo-server
     {{- include "common.defaultLabels" . | nindent 4 }}
@@ -42,7 +42,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "common.fullname" . }}-reposrv
+  name: {{ include "common.fullname" . }}-reposerver
   labels:
     app.kubernetes.io/component: repo-server
     {{- include "common.defaultLabels" . | nindent 4 }}
@@ -59,7 +59,7 @@ metadata:
                           $wl.annotations) ) | nindent 4 }}
 spec:
   {{- if not $wl.serviceName }}
-  serviceName: {{ include "common.fullname" . }}-reposrv-headless
+  serviceName: {{ include "common.fullname" . }}-reposerver-headless
   {{- else }}
   {{- with $wl.serviceName }}
   serviceName: {{ . | quote }}
@@ -113,5 +113,5 @@ spec:
                               $wl.labels
                               $pod.labels) ) | nindent 8 }}
     spec:
-      {{- include "argocd.reposrv.pod" . | nindent 6 }}
+      {{- include "argocd.reposerver.pod" . | nindent 6 }}
 {{- end -}}

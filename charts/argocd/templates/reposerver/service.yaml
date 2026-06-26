@@ -1,13 +1,13 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.reposrv -}}
+{{- $main := $v.reposerver -}}
 {{- $svc := $main.service -}}
 
 --- # --------------------------------------------------------------------------------- Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "common.fullname" . }}-reposrv
+  name: {{ include "common.fullname" . }}-reposerver
   labels:
     app.kubernetes.io/component: repo-server
     {{- include "common.defaultLabels" . | nindent 4 }}

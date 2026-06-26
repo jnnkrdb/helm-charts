@@ -1,10 +1,10 @@
 {{/*
 Pod Spec
 */}}
-{{- define "argocd.reposrv.pod" -}}
+{{- define "argocd.reposerver.pod" -}}
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.reposrv -}}
+{{- $main := $v.reposerver -}}
 
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
@@ -14,7 +14,7 @@ Pod Spec
 {{- $imgs := $v.images -}}
 
 {{- include "common.podSpec" ( dict "podSpec" $pod ) }}
-serviceAccountName: sa-{{ include "common.fullname" . }}-reposrv
+serviceAccountName: sa-{{ include "common.fullname" . }}-reposerver
 imagePullSecrets:
   {{- include "common.imagePullSecrets" ( 
       dict "imagePullSecrets" (concat $global.imagePullSecrets
@@ -105,32 +105,32 @@ containers:
   {{- with (concat $pod.sidecarContainers) }}
   {{- . | toYaml | nindent 2 }}
   {{- end }}
-  - name: reposrv
+  - name: reposerver
     image: {{ include "common.image" ( dict "img" $imgs.argocd "ctx" $ ) }}
     imagePullPolicy: {{ include "common.firstOf" (
                         dict "items" ( list $global.imagePullPolicy 
                                             $imgs.argocd.imagePullPolicy )) }}
-    {{- with $ctrs.reposrv.command }}
+    {{- with $ctrs.reposerver.command }}
     command: 
       {{- . | toYaml | nindent 6 }}
     {{- end }}
-    {{- with $ctrs.reposrv.args }}
+    {{- with $ctrs.reposerver.args }}
     args: 
       {{- . | toYaml | nindent 6 }}
     {{- end }}
-    {{- with $ctrs.reposrv.securityContext }}
+    {{- with $ctrs.reposerver.securityContext }}
     securityContext: 
       {{- . | toYaml | nindent 6 }}
     {{- end }}
-    {{- with $ctrs.reposrv.workingDir }}
+    {{- with $ctrs.reposerver.workingDir }}
     workingDir: {{ . | quote }}
     {{- end }}
-    {{- with $ctrs.reposrv.resources }}
+    {{- with $ctrs.reposerver.resources }}
     resources:
       {{- . | toYaml | nindent 6 }}
     {{- end }}
     env:
-      {{- with ( concat $ctrs.reposrv.extraEnvs 
+      {{- with ( concat $ctrs.reposerver.extraEnvs 
                         $pod.extraEnvs) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
@@ -373,7 +373,7 @@ containers:
       - name: HELM_DATA_HOME
         value: /helm-working-dir
     envFrom:
-      {{- with ( concat $ctrs.reposrv.extraEnvFrom 
+      {{- with ( concat $ctrs.reposerver.extraEnvFrom 
                         $pod.extraEnvFrom) }}
       {{- . | toYaml | nindent 6 }}
       {{- end }}
@@ -389,7 +389,7 @@ containers:
         {{- end }}
       {{- end }}
     volumeMounts:
-      {{- with ( concat $ctrs.reposrv.extraVolumeMounts 
+      {{- with ( concat $ctrs.reposerver.extraVolumeMounts 
                         $pod.extraVolumeMounts
                         $global.extraVolumeMounts) }}
       {{- . | toYaml | nindent 6 }}
@@ -410,15 +410,15 @@ containers:
         name: helm-working-dir
       - mountPath: /home/argocd/cmp-server/plugins
         name: plugins 
-    {{- with $ctrs.reposrv.startupProbe }}
+    {{- with $ctrs.reposerver.startupProbe }}
     startupProbe:
       {{- . | toYaml | nindent 6 }}
     {{- end }}
-    {{- with $ctrs.reposrv.livenessProbe }}
+    {{- with $ctrs.reposerver.livenessProbe }}
     livenessProbe:
       {{- . | toYaml | nindent 6 }}
     {{- end }}
-    {{- with $ctrs.reposrv.readinessProbe }}
+    {{- with $ctrs.reposerver.readinessProbe }}
     readinessProbe:
       {{- . | toYaml | nindent 6 }}
     {{- end }}

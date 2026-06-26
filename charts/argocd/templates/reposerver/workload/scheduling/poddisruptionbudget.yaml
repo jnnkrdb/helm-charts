@@ -1,6 +1,6 @@
 {{- $v := .Values -}}
 {{- $global := $v.global -}}
-{{- $main := $v.reposrv -}}
+{{- $main := $v.reposerver -}}
 {{- $pdb := $main.pdb -}}
 {{- $wl := $main.workload -}}
 
@@ -10,7 +10,7 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "common.fullname" . }}-reposrv
+  name: {{ include "common.fullname" . }}-reposerver
   labels:
     app.kubernetes.io/component: repo-server
     {{- include "common.defaultLabels" . | nindent 4 }}
