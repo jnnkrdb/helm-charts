@@ -45,3 +45,7 @@ template: check-helm ## Template helm chart
 upgrade: check-helm ## Upgrade helm chart
 	helm dep update charts/${CHART}
 	helm upgrade ${CHART} charts/${CHART} -n test-$(CHART) --create-namespace --install --debug -f charts/${CHART}/values.yaml
+
+.PHONY: uninstall
+uninstall: check-helm ## Uninstall helm chart
+	helm uninstall ${CHART} -n test-$(CHART) --debug
