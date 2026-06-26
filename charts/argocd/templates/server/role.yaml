@@ -23,43 +23,37 @@ metadata:
                           $main.annotations
                           $rbac.annotations ) ) | nindent 4 }}
 rules:
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-      - configmaps
-    verbs:
-      - create
-      - get
-      - list
-      - watch
-      - update
-      - patch
-      - delete
-  - apiGroups:
-      - argoproj.io
-    resources:
-      - applications
-      - appprojects
-      - applicationsets
-    verbs:
-      - create
-      - get
-      - list
-      - watch
-      - update
-      - delete
-      - patch
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - create
-      - list
-  - apiGroups:
-      - ""
-    resources:
-      - pods/exec
-    verbs:
-      - create
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - applications
+  - appprojects
+  - applicationsets
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - delete
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - list

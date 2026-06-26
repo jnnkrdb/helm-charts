@@ -23,17 +23,17 @@ metadata:
                           $main.annotations
                           $rbac.annotations ) ) | nindent 4 }}
 rules:
-  - apiGroups:
-      - ""
-    resourceNames:
-      - argocd-redis
-    resources:
-      - secrets
-    verbs:
-      - get
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-    verbs:
-      - create
+- apiGroups:
+  - ""
+  resourceNames:
+  - argocd-redis
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
