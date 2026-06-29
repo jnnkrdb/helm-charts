@@ -342,6 +342,7 @@ server:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -541,6 +542,7 @@ reposerver:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -715,6 +717,7 @@ applicationcontroller:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -880,6 +883,7 @@ applicationsetcontroller:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -1053,6 +1057,7 @@ notificationscontroller:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -1085,6 +1090,7 @@ notificationscontroller:
       enabled: true
       stringData: {}
       data: {}
+
 #--------------------------------------------------------------------------------------------------
 # ARGOCD COMMITSERVER CONFIGURATION
 commitserver:
@@ -1236,6 +1242,7 @@ commitserver:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -1431,6 +1438,7 @@ redis:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1
@@ -1642,6 +1650,7 @@ dexidp:
     maxUnavailable: 1
 
   hpa:
+    enabled: false
     annotations: {}
     labels: {}
     minReplicas: 1

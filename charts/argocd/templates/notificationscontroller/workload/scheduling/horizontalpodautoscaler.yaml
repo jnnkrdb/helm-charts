@@ -5,6 +5,7 @@
 {{- $hpa := $main.hpa -}}
 
 {{- if $main.enabled -}}
+{{- if $hpa.enabled -}}
 {{- if not $wl.replicaCount -}}
 {{- if has (include "common.workloadKind" ( dict "kind" $wl.kind )) ( list "Deployment" "StatefulSet" ) -}}
 --- # --------------------------------------------------------------------------------- HorizontalPodAutoscaler
@@ -15,16 +16,16 @@ metadata:
   labels:
     app.kubernetes.io/component: notifications-controller
     {{- include "common.defaultLabels" . | nindent 4 }}
-    {{- include "common.keyValues" ( 
-        dict "kvs" ( list $global.labels 
-                          $v.labels 
-                          $main.labels 
+    {{- include "common.keyValues" (
+        dict "kvs" ( list $global.labels
+                          $v.labels
+                          $main.labels
                           $hpa.labels) ) | nindent 4 }}
   annotations:
-    {{- include "common.keyValues" ( 
-        dict "kvs" ( list $global.annotations 
-                          $v.annotations 
-                          $main.annotations 
+    {{- include "common.keyValues" (
+        dict "kvs" ( list $global.annotations
+                          $v.annotations
+                          $main.annotations
                           $hpa.annotations) ) | nindent 4 }}
 spec:
   scaleTargetRef:
@@ -37,6 +38,7 @@ spec:
   metrics:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
