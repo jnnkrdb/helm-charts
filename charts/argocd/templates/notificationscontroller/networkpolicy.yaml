@@ -3,6 +3,7 @@
 {{- $main := $v.notificationscontroller -}}
 {{- $svc := $main.service -}}
 
+{{- if $main.enabled -}}
 --- # --------------------------------------------------------------------------------- NetworkPolicy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -32,3 +33,4 @@ spec:
         - namespaceSelector: {}
       ports:
         - port: {{ $svc.ports.metrics.port }}
+{{- end -}}

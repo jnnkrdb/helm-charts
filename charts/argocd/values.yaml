@@ -1088,6 +1088,7 @@ notificationscontroller:
 #--------------------------------------------------------------------------------------------------
 # ARGOCD COMMITSERVER CONFIGURATION
 commitserver:
+  enabled: true
   labels: {}
   annotations: {}
 

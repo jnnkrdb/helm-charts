@@ -4,6 +4,7 @@
 {{- $pdb := $main.pdb -}}
 {{- $wl := $main.workload -}}
 
+{{- if $main.enabled -}}
 {{- if not (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "DaemonSet") -}}
 {{- if $pdb.enabled -}}
 --- # --------------------------------------------------------------------------------- PodDisruptionBudget
@@ -41,5 +42,6 @@ spec:
   {{- with $pdb.unhealthyPodEvictionPolicy }}
   unhealthyPodEvictionPolicy: {{ . }}
   {{- end }}
+{{- end -}}
 {{- end -}}
 {{- end -}}

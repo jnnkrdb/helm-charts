@@ -5,6 +5,7 @@
 {{- $pod := $main.pod -}}
 {{- $svc := $main.service -}}
 
+{{- if $main.enabled -}}
 {{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "StatefulSet") -}}
 {{- if not $wl.serviceName -}}
 --- # --------------------------------------------------------------------------------- Headless Service
@@ -114,4 +115,5 @@ spec:
                               $pod.labels) ) | nindent 8 }}
     spec:
       {{- include "argocd.notificationscontroller.pod" . | nindent 6 }}
+{{- end -}}
 {{- end -}}

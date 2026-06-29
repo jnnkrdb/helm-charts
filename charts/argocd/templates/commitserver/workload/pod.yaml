@@ -4,6 +4,7 @@
 {{- $wl := $main.workload -}}
 {{- $pod := $main.pod -}}
 
+{{- if $main.enabled -}}
 {{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "Pod") -}}
 --- # --------------------------------------------------------------------------------- Pod
 apiVersion: v1
@@ -27,4 +28,5 @@ metadata:
                           $wl.annotations) ) | nindent 4 }}
 spec:
   {{- include "argocd.commitserver.pod" . | nindent 2 }}
+{{- end -}}
 {{- end -}}

@@ -3,6 +3,7 @@
 {{- $main := $v.notificationscontroller -}}
 {{- $rbac := $main.rbac -}}
 
+{{- if $main.enabled -}}
 --- # --------------------------------------------------------------------------------- RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -30,4 +31,4 @@ subjects:
   - kind: ServiceAccount
     name: sa-{{ include "common.fullname" . }}-notificationscontroller
     namespace: {{ .Release.Namespace }}
-    
+{{- end -}}
