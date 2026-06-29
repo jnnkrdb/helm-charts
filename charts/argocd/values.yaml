@@ -144,7 +144,13 @@ argocd:
           - UpdateRequest
   argocd-cmd-params-cm:
     enabled: true
-    data: {}
+    data:
+      repo.server: |
+        {{- include "common.fullname" . }}-reposerver:{{ .Values.reposerver.service.ports.http.port -}}
+      redis.server: |
+        {{- include "common.fullname" . }}-redis:{{ .Values.redis.service.ports.tcp.port -}}
+      server.dex.server: |
+        {{- include "common.fullname" . }}-dexidp:{{ .Values.dexidp.service.ports.http.port -}}
   argocd-gpg-keys-cm:
     enabled: true
     data: {}
@@ -1632,7 +1638,7 @@ dexidp:
     ipFamilies: []
 
   ingress:
-    enabled: false
+    enabled: true
     annotations: {}
     labels: {}
     ingressClassName: null

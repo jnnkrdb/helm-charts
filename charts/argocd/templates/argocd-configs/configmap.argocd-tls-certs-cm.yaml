@@ -11,6 +11,7 @@ metadata:
   name: argocd-tls-certs-cm
   labels:
     app.kubernetes.io/name: argocd-tls-certs-cm
+    app.kubernetes.io/part-of: argocd
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels ) ) | nindent 4 }}
@@ -26,3 +27,4 @@ data:
   {{- end }}
   {{- end }}
 {{- end }}
+{{- end -}}

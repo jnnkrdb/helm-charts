@@ -3,6 +3,7 @@
 {{- $main := $v.argocd -}}
 {{- $cm := (index $main "argocd-gpg-keys-cm") -}}
 
+{{- if $cm.enabled -}}
 --- # --------------------------------------------------------------------------------- ConfigMap
 apiVersion: v1
 kind: ConfigMap
@@ -10,6 +11,7 @@ metadata:
   name: argocd-gpg-keys-cm
   labels:
     app.kubernetes.io/name: argocd-gpg-keys-cm
+    app.kubernetes.io/part-of: argocd
     {{- include "common.keyValues" ( 
         dict "kvs" ( list $global.labels 
                           $v.labels ) ) | nindent 4 }}
@@ -25,3 +27,4 @@ data:
   {{- end }}
   {{- end }}
 {{- end }}
+{{- end -}}
