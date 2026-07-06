@@ -2,7 +2,7 @@ apiVersion: v2
 name: argocd
 description: A Helm chart for deploying argocd.
 type: application
-version: 1.0.4
+version: 1.0.5
 appVersion: v3.4.4
 kubeVersion: ">=1.25.0-0"
 home: "https://github.com/jnnkrdb/helm-charts"
@@ -21,6 +21,6 @@ dependencies:
   version: 1.0.1
 - name: argocd-crds
   repository: "https://jnnkrdb.github.io/helm-charts"
-  version: 1.0.3
+  version: 1.0.4
   alias: crds
   condition: crds.enabled
