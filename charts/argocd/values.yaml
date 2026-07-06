@@ -329,7 +329,7 @@ server:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   ingress:
@@ -539,7 +539,7 @@ reposerver:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   pdb:
@@ -714,7 +714,7 @@ applicationcontroller:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   pdb:
@@ -882,7 +882,7 @@ applicationsetcontroller:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   pdb:
@@ -1056,7 +1056,7 @@ notificationscontroller:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   pdb:
@@ -1241,7 +1241,7 @@ commitserver:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   pdb:
@@ -1437,7 +1437,7 @@ redis:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   pdb:
@@ -1639,7 +1639,7 @@ dexidp:
         nodePort: null
         hostPort: null
     publishNotReadyAddresses: null
-    ipFamilyPolicy: null # SingleStack
+    ipFamilyPolicy: null
     ipFamilies: []
 
   ingress:
