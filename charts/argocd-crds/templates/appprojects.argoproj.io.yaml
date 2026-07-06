@@ -1,13 +1,14 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name | quote }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace | quote }}
+    meta.helm.sh/chart-version: {{ .Chart.Version | quote }}
   labels:
     app.kubernetes.io/name: appprojects.argoproj.io
     app.kubernetes.io/part-of: argocd
     app.kubernetes.io/managed-by: "Helm"
-    meta.helm.sh/release-name: {{ .Release.Name | quote }}
-    meta.helm.sh/release-namespace: {{ .Release.Namespace | quote }}
-    meta.helm.sh/chart-version: {{ .Chart.Version | quote }}
   name: appprojects.argoproj.io
 spec:
   group: argoproj.io
