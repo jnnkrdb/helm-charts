@@ -585,7 +585,7 @@ applicationcontroller:
   workload:
     annotations: {}
     labels: {}
-    kind: StatefulSet # either Deployment, StatefulSet or DaemonSet
+    kind: StatefulSet
     revisionHistoryLimit: 1
     replicaCount: 1
     minReadySeconds: 10
@@ -1287,7 +1287,7 @@ redis:
   workload:
     annotations: {}
     labels: {}
-    kind: Deployment # either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
     revisionHistoryLimit: 1
     replicaCount: 1
     minReadySeconds: 10
@@ -1483,7 +1483,7 @@ dexidp:
   workload:
     annotations: {}
     labels: {}
-    kind: Deployment # either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
     revisionHistoryLimit: 1
     replicaCount: 1
     minReadySeconds: 10
