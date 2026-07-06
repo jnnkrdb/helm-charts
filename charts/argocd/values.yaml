@@ -18,7 +18,7 @@ labels: {}
 annotations: {}
 extraDeploy: []
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # IMAGE CONFIGURATION
 images:
   argocd:
@@ -43,7 +43,7 @@ images:
     imagePullPolicy: IfNotPresent
     imagePullSecrets: []
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ARGOCD CONFIGURATION OBJECTS SECTION
 argocd:
   argocd-cm:
@@ -186,7 +186,7 @@ argocd:
     data: {}
     stringData: {}
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ARGOCD SERVER CONFIGURATION
 server:
   labels: {}
@@ -195,7 +195,7 @@ server:
   workload:
     annotations: {}
     labels: {}
-    kind: Deployment # either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
     revisionHistoryLimit: 1
     replicaCount: 1
     minReadySeconds: 10
@@ -376,7 +376,7 @@ server:
     serviceAccount:
       automountServiceAccountToken: true
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ARGOCD REPOSERVER CONFIGURATION
 reposerver:
   labels: {}
@@ -385,7 +385,7 @@ reposerver:
   workload:
     annotations: {}
     labels: {}
-    kind: Deployment # either Deployment, StatefulSet or DaemonSet
+    kind: Deployment
     revisionHistoryLimit: 1
     replicaCount: 1
     minReadySeconds: 10
@@ -576,7 +576,7 @@ reposerver:
     serviceAccount:
       automountServiceAccountToken: true
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ARGOCD APPLICATIONCONTROLLER CONFIGURATION
 applicationcontroller:
   labels: {}
@@ -751,7 +751,7 @@ applicationcontroller:
     serviceAccount:
       automountServiceAccountToken: true
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ARGOCD APPLICATIONSETCONTROLLER CONFIGURATION
 applicationsetcontroller:
   labels: {}
@@ -919,7 +919,7 @@ applicationsetcontroller:
     serviceAccount:
       automountServiceAccountToken: true
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ARGOCD NOTIFICATIONSCONTROLLER CONFIGURATION
 notificationscontroller:
   enabled: true
@@ -1102,7 +1102,7 @@ notificationscontroller:
       stringData: {}
       data: {}
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ARGOCD COMMITSERVER CONFIGURATION
 commitserver:
   enabled: true
@@ -1278,7 +1278,7 @@ commitserver:
     serviceAccount:
       automountServiceAccountToken: true
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # REDIS CONFIGURATION
 redis:
   labels: {}
@@ -1474,7 +1474,7 @@ redis:
     serviceAccount:
       automountServiceAccountToken: true
 
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # DEXIDP CONFIGURATION
 dexidp:
   labels: {}
