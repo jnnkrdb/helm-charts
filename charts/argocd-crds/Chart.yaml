@@ -2,7 +2,7 @@ apiVersion: v2
 name: argocd-crds
 description: A Helm chart for deploying argocd's Custom Resource Definitions (CRDs).
 type: application
-version: 1.0.4
+version: 1.0.5
 home: "https://github.com/jnnkrdb/helm-charts"
 maintainers:
 - name: jnnkrdb
