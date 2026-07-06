@@ -1,0 +1,69 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $main := $v.dexidp -}}
+{{- $wl := $main.workload -}}
+{{- $pod := $main.pod -}}
+
+{{- if (eq (include "common.workloadKind" ( dict "kind" $wl.kind )) "Deployment") -}}
+--- # --------------------------------------------------------------------------------- Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.fullname" . }}-dexidp
+  labels:
+    app.kubernetes.io/component: dexidp
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels 
+                          $main.labels 
+                          $wl.labels) ) | nindent 4 }}
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations 
+                          $main.annotations 
+                          $wl.annotations) ) | nindent 4 }}
+spec:
+  {{- with $wl.replicaCount }}
+  replicas: {{ . }}
+  {{- end }}
+  {{- with $wl.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with $wl.minReadySeconds }}
+  minReadySeconds: {{ . }}
+  {{- end }}
+  {{- with $wl.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{ . }}
+  {{- end }}
+  {{- with $wl.updateStrategy }}
+  strategy:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: dexidp
+      {{- include "common.defaultSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- include "argocd.configs.checksums" . | nindent 8 }}
+        {{- include "common.keyValues" ( 
+            dict "kvs" ( list $global.annotations 
+                              $v.annotations
+                              $main.annotations 
+                              $wl.annotations
+                              $pod.annotations) ) | nindent 8 }}
+      labels: 
+        app.kubernetes.io/component: dexidp
+        {{- include "common.defaultSelectorLabels" . | nindent 8 }}
+        {{- include "common.keyValues" ( 
+            dict "kvs" ( list $global.labels 
+                              $v.labels
+                              $main.labels 
+                              $wl.labels
+                              $pod.labels) ) | nindent 8 }}
+    spec:
+      {{- include "argocd.dexidp.pod" . | nindent 6 }}
+{{- end -}}

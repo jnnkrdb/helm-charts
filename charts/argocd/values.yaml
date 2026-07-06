@@ -1,0 +1,1687 @@
+# --------------------------------------------------------------------------------------------------
+# GLOBAL CONFIGURATION
+global:
+  imagePullSecrets: []
+  imagePullPolicy: null
+  imageRegistry: null
+  storageClassName: null
+  ingressClassName: null
+  labels: {}
+  annotations: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# GENERAL CONFIGURATION
+labels: {}
+annotations: {}
+extraDeploy: []
+
+# --------------------------------------------------------------------------------------------------
+# IMAGE CONFIGURATION
+images:
+  argocd:
+    registry: quay.io
+    repository: argoproj/argocd
+    tag: v3.4.4
+    digest: null
+    imagePullPolicy: IfNotPresent
+    imagePullSecrets: []
+  dexidp:
+    registry: ghcr.io
+    repository: dexidp/dex
+    tag: v2.45.0
+    digest: null
+    imagePullPolicy: IfNotPresent
+    imagePullSecrets: []
+  redis:
+    registry: docker.io
+    repository: redis
+    tag: 8.2.3-alpine
+    digest: null
+    imagePullPolicy: IfNotPresent
+    imagePullSecrets: []
+
+# --------------------------------------------------------------------------------------------------
+# ARGOCD CONFIGURATION OBJECTS SECTION
+argocd:
+  argocd-cm:
+    enabled: true
+    data:
+      url: "https://{{ .Values.server.ingress.host }}"
+      dex.config: |
+        connectors: []
+      resource.customizations.ignoreResourceUpdates.ConfigMap: |
+        jqPathExpressions:
+          # Ignore the cluster-autoscaler status
+          - '.metadata.annotations."cluster-autoscaler.kubernetes.io/last-updated"'
+          # Ignore the annotation of the legacy Leases election
+          - '.metadata.annotations."control-plane.alpha.kubernetes.io/leader"'
+      resource.customizations.ignoreResourceUpdates.Endpoints: |
+        jsonPointers:
+          - /metadata
+          - /subsets
+      resource.customizations.ignoreResourceUpdates.all: |
+        jsonPointers:
+          - /status
+      resource.customizations.ignoreResourceUpdates.apps_ReplicaSet: |
+        jqPathExpressions:
+          - '.metadata.annotations."deployment.kubernetes.io/desired-replicas"'
+          - '.metadata.annotations."deployment.kubernetes.io/max-replicas"'
+          - '.metadata.annotations."rollout.argoproj.io/desired-replicas"'
+      resource.customizations.ignoreResourceUpdates.argoproj.io_Application: |
+        jqPathExpressions:
+          - '.metadata.annotations."notified.notifications.argoproj.io"'
+          - '.metadata.annotations."argocd.argoproj.io/refresh"'
+          - '.metadata.annotations."argocd.argoproj.io/hydrate"'
+          - '.operation'
+      resource.customizations.ignoreResourceUpdates.argoproj.io_Rollout: |
+        jqPathExpressions:
+          - '.metadata.annotations."notified.notifications.argoproj.io"'
+      resource.customizations.ignoreResourceUpdates.autoscaling_HorizontalPodAutoscaler: |
+        jqPathExpressions:
+          - '.metadata.annotations."autoscaling.alpha.kubernetes.io/behavior"'
+          - '.metadata.annotations."autoscaling.alpha.kubernetes.io/conditions"'
+          - '.metadata.annotations."autoscaling.alpha.kubernetes.io/metrics"'
+          - '.metadata.annotations."autoscaling.alpha.kubernetes.io/current-metrics"'
+      resource.customizations.ignoreResourceUpdates.discovery.k8s.io_EndpointSlice: |
+        jsonPointers:
+          - /metadata
+          - /endpoints
+          - /ports
+      resource.exclusions: |
+        ### Network resources created by the Kubernetes control plane and excluded to reduce the number of watched events and UI clutter
+        - apiGroups:
+          - ''
+          - discovery.k8s.io
+          kinds:
+          - Endpoints
+          - EndpointSlice
+        ### Internal Kubernetes resources excluded reduce the number of watched events
+        - apiGroups:
+          - coordination.k8s.io
+          kinds:
+          - Lease
+        ### Internal Kubernetes Authz/Authn resources excluded reduce the number of watched events
+        - apiGroups:
+          - authentication.k8s.io
+          - authorization.k8s.io
+          kinds:
+          - SelfSubjectReview
+          - TokenReview
+          - LocalSubjectAccessReview
+          - SelfSubjectAccessReview
+          - SelfSubjectRulesReview
+          - SubjectAccessReview
+        ### Intermediate Certificate Request excluded reduce the number of watched events
+        - apiGroups:
+          - certificates.k8s.io
+          kinds:
+          - CertificateSigningRequest
+        - apiGroups:
+          - cert-manager.io
+          kinds:
+          - CertificateRequest
+        ### Cilium internal resources excluded reduce the number of watched events and UI Clutter
+        - apiGroups:
+          - cilium.io
+          kinds:
+          - CiliumIdentity
+          - CiliumEndpoint
+          - CiliumEndpointSlice
+        ### Kyverno intermediate and reporting resources excluded reduce the number of watched events and improve performance
+        - apiGroups:
+          - kyverno.io
+          - reports.kyverno.io
+          - wgpolicyk8s.io
+          kinds:
+          - PolicyReport
+          - ClusterPolicyReport
+          - EphemeralReport
+          - ClusterEphemeralReport
+          - AdmissionReport
+          - ClusterAdmissionReport
+          - BackgroundScanReport
+          - ClusterBackgroundScanReport
+          - UpdateRequest
+  argocd-cmd-params-cm:
+    enabled: true
+    data:
+      repo.server: |
+        {{- include "common.fullname" . }}-reposerver:{{ .Values.reposerver.service.ports.http.port -}}
+      redis.server: |
+        {{- include "common.fullname" . }}-redis:{{ .Values.redis.service.ports.tcp.port -}}
+      server.dex.server: |
+        {{- include "common.fullname" . }}-dexidp:{{ .Values.dexidp.service.ports.http.port -}}
+  argocd-gpg-keys-cm:
+    enabled: true
+    data: {}
+  argocd-rbac-cm:
+    enabled: true
+    data: {}
+  argocd-ssh-known-hosts-cm:
+    enabled: true
+    data:
+      ssh_known_hosts: |
+        [ssh.github.com]:443 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+        [ssh.github.com]:443 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+        [ssh.github.com]:443 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+        bitbucket.org ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPIQmuzMBuKdWeF4+a2sjSSpBK0iqitSQ+5BM9KhpexuGt20JpTVM7u5BDZngncgrqDMbWdxMWWOGtZ9UgbqgZE=
+        bitbucket.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIazEu89wgQZ4bqs3d63QSMzYVa0MuJ2e2gKTKqu+UUO
+        bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDQeJzhupRu0u0cdegZIa8e86EG2qOCsIsD1Xw0xSeiPDlCr7kq97NLmMbpKTX6Esc30NuoqEEHCuc7yWtwp8dI76EEEB1VqY9QJq6vk+aySyboD5QF61I/1WeTwu+deCbgKMGbUijeXhtfbxSxm6JwGrXrhBdofTsbKRUsrN1WoNgUa8uqN1Vx6WAJw1JHPhglEGGHea6QICwJOAr/6mrui/oB7pkaWKHj3z7d1IC4KWLtY47elvjbaTlkN04Kc/5LFEirorGYVbt15kAUlqGM65pk6ZBxtaO3+30LVlORZkxOh+LKL/BvbZ/iRNhItLqNyieoQj/uh/7Iv4uyH/cV/0b4WDSd3DptigWq84lJubb9t/DnZlrJazxyDCulTmKdOR7vs9gMTo+uoIrPSb8ScTtvw65+odKAlBj59dhnVp9zd7QUojOpXlL62Aw56U4oO+FALuevvMjiWeavKhJqlR7i5n9srYcrNV7ttmDw7kf/97P5zauIhxcjX+xHv4M=
+        github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+        github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+        github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+        gitlab.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFSMqzJeV9rUzU4kWitGjeR4PWSa29SPqJ1fVkhtj3Hw9xjLVXVYrU9QlYWrOLXBpQ6KWjbjTDTdDkoohFzgbEY=
+        gitlab.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf
+        gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9
+        ssh.dev.azure.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
+        vs-ssh.visualstudio.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
+  argocd-tls-certs-cm:
+    enabled: true
+    data: {}
+  argocd-secret:
+    enabled: true
+    data: {}
+    stringData: {}
+
+# --------------------------------------------------------------------------------------------------
+# ARGOCD SERVER CONFIGURATION
+server:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: server
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    server:
+      command: []
+      args:
+      - /usr/local/bin/argocd-server
+      workingDir: null
+      resources:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: http
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: http
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      http:
+        port: 8080
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      metrics:
+        port: 8083
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  ingress:
+    enabled: false
+    annotations: {}
+    labels: {}
+    ingressClassName: null
+    host: server.argocd.example.com
+    tls:
+      enabled: false
+      secretName: null
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# ARGOCD REPOSERVER CONFIGURATION
+reposerver:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: repo-server
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: false
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    copyutil:
+      command:
+      - sh
+      - -c
+      args:
+      - /bin/cp --update=none /usr/local/bin/argocd /var/run/argocd/argocd && /bin/ln -s /var/run/argocd/argocd /var/run/argocd/argocd-cmp-server
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+    reposerver:
+      command: []
+      args:
+      - /usr/local/bin/argocd-repo-server
+      workingDir: null
+      resources:
+        limits:
+          memory: 1024Mi
+        requests:
+          cpu: 200m
+          memory: 1024Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: metrics
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      http:
+        port: 8081
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      metrics:
+        port: 8084
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# ARGOCD APPLICATIONCONTROLLER CONFIGURATION
+applicationcontroller:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: StatefulSet
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: application-controller
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    applicationcontroller:
+      command: []
+      args:
+      - /usr/local/bin/argocd-application-controller
+      workingDir: /home/argocd
+      resources:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 250m
+          memory: 1Gi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      metrics:
+        port: 8082
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# ARGOCD APPLICATIONSETCONTROLLER CONFIGURATION
+applicationsetcontroller:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity: {}
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    applicationsetcontroller:
+      command: []
+      args:
+      - /usr/local/bin/argocd-applicationset-controller
+      workingDir: /app
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        tcpSocket:
+          port: health
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        tcpSocket:
+          port: health
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        tcpSocket:
+          port: health
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      webhook:
+        port: 7000
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      metrics:
+        port: 8080
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      health:
+        port: 8081
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# ARGOCD NOTIFICATIONSCONTROLLER CONFIGURATION
+notificationscontroller:
+  enabled: true
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy:
+      type: Recreate
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: notifications-controller
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    notificationscontroller:
+      command: []
+      args:
+      - /usr/local/bin/argocd-notifications
+      workingDir: /app
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        tcpSocket:
+          port: metrics
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        tcpSocket:
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        tcpSocket:
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      metrics:
+        port: 9001
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+  config:
+    argocd-notifications-cm:
+      enabled: true
+      data: {}
+    argocd-notifications-secret:
+      enabled: true
+      stringData: {}
+      data: {}
+
+# --------------------------------------------------------------------------------------------------
+# ARGOCD COMMITSERVER CONFIGURATION
+commitserver:
+  enabled: true
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: commit-server
+            topologyKey: kubernetes.io/hostname
+        - weight: 5
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: false
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    commitserver:
+      command: []
+      args:
+      - /usr/local/bin/argocd-commit-server
+      workingDir: /app
+      resources: {}
+      securityContext:
+        runAsNonRoot: true
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: metrics
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz?full=true
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      server:
+        port: 8086
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      metrics:
+        port: 8087
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# REDIS CONFIGURATION
+redis:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: redis
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 999
+      seccompProfile:
+        type: RuntimeDefault
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    secretinit:
+      command:
+      - argocd
+      args:
+      - admin
+      - redis-initial-password
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+    redis:
+      command: []
+      args:
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --requirepass $(REDIS_PASSWORD)
+      workingDir: null
+      resources:
+        requests:
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        tcpSocket:
+          port: tcp
+        periodSeconds: 5
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        tcpSocket:
+          port: tcp
+        periodSeconds: 10
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 3
+      readinessProbe:
+        tcpSocket:
+          port: tcp
+        periodSeconds: 10
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      tcp:
+        port: 6379
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
+
+# --------------------------------------------------------------------------------------------------
+# DEXIDP CONFIGURATION
+dexidp:
+  labels: {}
+  annotations: {}
+
+  workload:
+    annotations: {}
+    labels: {}
+    kind: Deployment
+    revisionHistoryLimit: 1
+    replicaCount: 1
+    minReadySeconds: 10
+    serviceName: null
+    podManagementPolicy: null
+    persistentVolumeClaimRetentionPolicy: null
+    progressDeadlineSeconds: null
+    updateStrategy: {}
+
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: argocd
+            topologyKey: kubernetes.io/hostname
+          weight: 5
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    priority: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  containers:
+    copyutil:
+      command:
+      - /bin/cp
+      args:
+      - -n
+      - /usr/local/bin/argocd
+      - /shared/argocd-dex
+      workingDir: null
+      resources: {}
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+    dexidp:
+      command:
+      - /shared/argocd-dex
+      args:
+      - rundex
+      workingDir: null
+      resources:
+        limits:
+          memory: 64Mi
+        requests:
+          cpu: 10m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+      startupProbe:
+        httpGet:
+          path: /healthz
+          port: http
+        periodSeconds: 5
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    clusterIP: null
+    ports:
+      http:
+        port: 5556
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      grpc:
+        port: 5557
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      metrics:
+        port: 5558
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+    publishNotReadyAddresses: null
+    ipFamilyPolicy: null
+    ipFamilies: []
+
+  ingress:
+    enabled: true
+    annotations: {}
+    labels: {}
+    ingressClassName: null
+    host: dexidp.argocd.example.com
+    tls:
+      enabled: false
+      secretName: null
+
+  pdb:
+    enabled: true
+    annotations: {}
+    labels: {}
+    unhealthyPodEvictionPolicy: AlwaysAllow
+    minAvailable: null
+    maxUnavailable: 1
+
+  hpa:
+    enabled: false
+    annotations: {}
+    labels: {}
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+  rbac:
+    annotations: {}
+    labels: {}
+    serviceAccount:
+      automountServiceAccountToken: true
