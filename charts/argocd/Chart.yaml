@@ -20,8 +20,8 @@ dependencies:
   repository: "https://jnnkrdb.github.io/helm-charts"
   version: 1.0.1
 
-#- name: argocd-crds
-#  repository: "https://jnnkrdb.github.io/helm-charts"
-#  version: 1.0.1
-#  alias: crds
-#  condition: crds.enabled
+# - name: argocd-crds
+#   repository: "https://jnnkrdb.github.io/helm-charts"
+#   version: 1.0.1
+#   alias: crds
+#   condition: crds.enabled
