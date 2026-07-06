@@ -3,6 +3,31 @@ entries:
   argocd:
   - apiVersion: v2
     appVersion: v3.4.4
+    created: "2026-07-06T13:10:04.855991756Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying argocd.
+    digest: 3f392b36424116c40390e3b20fdc787f73c5cae43f05ed48bdf60759ac25ff8f
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - argoproj
+    - argocd
+    - gitops
+    - cd
+    - continuous-deployment
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: argocd
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/argocd-1.0.1/argocd-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: v3.4.4
     created: "2026-07-06T11:49:03.739132565Z"
     dependencies:
     - name: common
@@ -26,6 +51,31 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/argocd-1.0.0/argocd-1.0.0.tgz
     version: 1.0.0
+  argocd-crds:
+  - apiVersion: v2
+    created: "2026-07-06T13:10:04.999760371Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying argocd's Custom Resource Definitions (CRDs).
+    digest: 410143df5aae201b89739f36aab4b934701d08d0b0d3ea07296e34c4ab839c05
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - argoproj
+    - argocd
+    - gitops
+    - cd
+    - continuous-deployment
+    - crds
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: argocd-crds
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/argocd-crds-1.0.1/argocd-crds-1.0.1.tgz
+    version: 1.0.1
   certmanager:
   - apiVersion: v2
     appVersion: v1.10.1
@@ -362,4 +412,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-07-06T11:49:03.739149931Z"
+generated: "2026-07-06T13:10:04.999794462Z"
