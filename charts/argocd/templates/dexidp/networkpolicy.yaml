@@ -3,6 +3,7 @@
 {{- $main := $v.dexidp -}}
 {{- $svc := $main.service -}}
 
+{{- if $main.enabled -}}
 --- # --------------------------------------------------------------------------------- NetworkPolicy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -43,3 +44,4 @@ spec:
       ports:
         - port: {{ $svc.ports.metrics.port }}
           protocol: TCP
+{{- end -}}
