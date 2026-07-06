@@ -143,6 +143,26 @@ entries:
     version: 1.0.0
   argocd-crds:
   - apiVersion: v2
+    created: "2026-07-06T15:49:58.744554193Z"
+    description: A Helm chart for deploying argocd's Custom Resource Definitions (CRDs).
+    digest: 4791f317e3271a087fc07bc4eabe9803d116cbc7d4c680ee1a33493ac1cb6915
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - argoproj
+    - argocd
+    - gitops
+    - cd
+    - continuous-deployment
+    - crds
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: argocd-crds
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/argocd-crds-1.0.5/argocd-crds-1.0.5.tgz
+    version: 1.0.5
+  - apiVersion: v2
     created: "2026-07-06T15:32:12.607514626Z"
     description: A Helm chart for deploying argocd's Custom Resource Definitions (CRDs).
     digest: fde02d6e9dddbfe4b7fec3fb3a8723c3b4b55cfae157315153b37013cda27a03
@@ -542,4 +562,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-07-06T15:33:48.299838072Z"
+generated: "2026-07-06T15:49:58.744600351Z"
