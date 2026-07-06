@@ -49,6 +49,9 @@ argocd:
   argocd-cm:
     enabled: true
     data:
+      url: "https://{{ .Values.server.ingress.host }}"
+      dex.config: |
+        connectors: []
       resource.customizations.ignoreResourceUpdates.ConfigMap: |
         jqPathExpressions:
           # Ignore the cluster-autoscaler status
@@ -836,25 +839,22 @@ applicationsetcontroller:
       extraEnvFrom: []
       extraVolumeMounts: []
       startupProbe:
-        httpGet:
-          path: /healthz
-          port: metrics
+        tcpSocket:
+          port: health
         periodSeconds: 5
         timeoutSeconds: 1
         successThreshold: 1
         failureThreshold: 30
       livenessProbe:
-        httpGet:
-          path: /healthz
-          port: metrics
+        tcpSocket:
+          port: health
         periodSeconds: 10
         timeoutSeconds: 1
         successThreshold: 1
         failureThreshold: 10
       readinessProbe:
-        httpGet:
-          path: /healthz
-          port: metrics
+        tcpSocket:
+          port: health
         periodSeconds: 10
         timeoutSeconds: 1
         successThreshold: 1
@@ -873,6 +873,11 @@ applicationsetcontroller:
         hostPort: null
       metrics:
         port: 8080
+        protocol: TCP
+        nodePort: null
+        hostPort: null
+      health:
+        port: 8081
         protocol: TCP
         nodePort: null
         hostPort: null
