@@ -19,6 +19,11 @@ annotations: {}
 extraDeploy: []
 
 # --------------------------------------------------------------------------------------------------
+# CRDS CONFIGURATION
+crds:
+  enabled: true
+
+# --------------------------------------------------------------------------------------------------
 # IMAGE CONFIGURATION
 images:
   argocd:
@@ -1485,7 +1490,7 @@ dexidp:
     labels: {}
     kind: Deployment
     revisionHistoryLimit: 1
-    replicaCount: 1
+    replicaCount: 0
     minReadySeconds: 10
     serviceName: null
     podManagementPolicy: null
