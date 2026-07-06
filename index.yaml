@@ -3,6 +3,36 @@ entries:
   argocd:
   - apiVersion: v2
     appVersion: v3.4.4
+    created: "2026-07-06T15:51:57.050916499Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    - alias: crds
+      condition: crds.enabled
+      name: argocd-crds
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.5
+    description: A Helm chart for deploying argocd.
+    digest: e4810b7f0f0801b5e1b9293bd4662c34fc94df577847bc7939fd2cbb5db18273
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - argoproj
+    - argocd
+    - gitops
+    - cd
+    - continuous-deployment
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: argocd
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/argocd-1.0.7/argocd-1.0.7.tgz
+    version: 1.0.7
+  - apiVersion: v2
+    appVersion: v3.4.4
     created: "2026-07-06T15:33:48.299741991Z"
     dependencies:
     - name: common
@@ -562,4 +592,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.0.0/vaultwarden-1.0.0.tgz
     version: 1.0.0
-generated: "2026-07-06T15:49:58.744600351Z"
+generated: "2026-07-06T15:51:57.050975679Z"
