@@ -1,0 +1,21 @@
+apiVersion: v2
+name: zotregistry
+description: A Helm chart for deploying project-zot/zot registry.
+type: application
+version: 1.0.0
+appVersion: v2.1.18
+kubeVersion: ">=1.25.0-0"
+home: "https://github.com/jnnkrdb/helm-charts"
+maintainers:
+- name: jnnkrdb
+  url: https://github.com/jnnkrdb
+keywords:
+- zot
+- registry
+- container
+- image
+- docker
+dependencies:
+- name: common
+  repository: "https://jnnkrdb.github.io/helm-charts"
+  version: 1.0.1
