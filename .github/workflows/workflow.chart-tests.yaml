@@ -1,0 +1,279 @@
+on:
+  workflow_call:
+    inputs:
+      run-lint:
+        description: "Execute 'helm lint' for all charts in the given directory."
+        required: false
+        type: boolean
+        default: false
+      run-template:
+        description: "Execute 'helm template' for all charts in the given directory."
+        required: false
+        type: boolean
+        default: false
+      run-unittests:
+        description: "Execute Unit Tests for the given charts."
+        required: false
+        type: boolean
+        default: false
+      run-policytests:
+        description: "Execute Policy Checks for the given charts."
+        required: false
+        type: boolean
+        default: false
+      run-integrationtests:
+        description: "Execute Integration Tests for the given charts."
+        required: false
+        type: boolean
+        default: false
+
+      charts-path:
+        description: |
+          This is the directory, in which the subdirectories are places, which contain the helm-charts. 
+          The directory would look like this 
+            -> 'charts/<chart-dir>/Chart.yaml' 
+          and the value would be 'charts'."
+        required: false
+        type: string
+        default: "charts"
+      chart-test-yaml:
+        description: |
+          This variable holds the path to the required chart-test configuration yaml. 
+          Most of the times its stored under the root path of a repository as ct.yaml.
+        required: true
+        type: string
+      templatevalues-subdir:
+        description: |
+          This is the sub-folder, within a charts directory, where differnt values.yaml's are stored, 
+          to test the templating of a given chart. The default sub dir is <chart-dir>/.values. 
+          If the sub-folder does not exist, the template test will be skipped. 
+        required: false
+        type: string
+        default: ".values"
+      unittests-subdir:
+        description: |
+          This is the sub-folder, within a charts directory, where differnt unittests are stored, 
+          to test the output of a given chart. The default sub dir is <chart-dir>/.unittests. 
+          If the sub-folder does not exist, the template test will be skipped. 
+        required: false
+        type: string
+        default: ".unittests"
+      unittests-filefilter:
+        description: |
+          This is the filter, used to calculate the required files for the unittest for the helmcharts.
+          The default configuration for the filter is '*.unit.yaml', so files within the unittests-subdir
+          with the .unit.yaml suffix/file-extension will be recognised for unit tests.
+        required: false
+        type: string
+        default: "*.unit.yaml"
+      policies-subdir:
+        description: |
+          This is the directory, in which the chart-related policies are placed. Normally this would be "<chart>/.policies".
+        required: false
+        type: string
+        default: ".policies"
+      policies-general-dir:
+        description: |
+          This is the directory, in which the general policies are placed. Normally this would be "policies".
+        required: false
+        type: string
+        default: "policies"
+
+jobs:
+  lint:
+    name: Lint Charts
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run-lint }}
+    env:
+      CHART_TEST_CONFIGURATION_YAML: ${{ inputs.chart-test-yaml }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.13.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2
+
+      - name: List changed charts
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
+          if [[ -n "$changed" ]]; thens
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changed charts: $changed"
+          fi
+
+      - name: Lint charts
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct lint --config $CHART_TEST_CONFIGURATION_YAML
+
+  templates:
+    name: Template Charts
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run-template }}
+    needs: lint
+    env:
+      CHARTS_DIR: ${{ inputs.charts-path }}
+      TEMPLATE_VALUES_SUBDIR: ${{ inputs.templatevalues-subdir }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.13.0
+
+      - name: Template Changed Charts
+        run: |
+          # Get changed charts
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
+          
+          for chart in $CHANGED; do
+            if [ -d "$CHARTS_DIR/$chart/$estvalues-subdir }}" ]; then
+              echo "Testing values for $chart"
+              find $CHARTS_DIR/$chart/$TEMPLATE_VALUES_SUBDIR -maxdepth 1 -iname "*.yaml" -type f -print0 | xargs -0 -I{} /bin/sh -c \
+                "echo '########################### Values - {}';
+                helm dependency build $CHARTS_DIR/$chart;
+                helm template $CHARTS_DIR/$chart --debug  -f {}";
+            fi
+          done
+
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run-unittests }}
+    needs: lint
+    env:
+      CHARTS_DIR: ${{ inputs.charts-path }}
+      UNITTEST_SUBDIR: ${{ inputs.unittests-subdir }}
+      UNITTEST_FILTER: ${{ inputs.unittests-filefilter }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Install helm-unittest
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --verify=false
+
+      - name: Run unit tests
+        run: |
+          # Get changed charts
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
+          
+          for chart in $CHANGED; do
+            if [ -d "$chart/$UNITTEST_SUBDIR" ]; then
+              echo "Testing $chart"
+              helm dependency build $chart
+              helm unittest "$chart" \
+                --file "$chart/$UNITTEST_SUBDIR/$UNITTEST_FILTER" \
+                --output-file result.$chart.xml \
+                --output-type JUnit
+            fi
+          done
+
+      - name: Publish test results
+        uses: mikepenz/action-junit-report@v6
+        if: always()
+        with:
+          report_paths: '**/results.*.xml'
+
+  policy-test:
+    name: Policy Tests
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run-policytests }}
+    needs: lint
+    env:
+      CHARTS_DIR: ${{ inputs.charts-path }}
+      POLICIES_SUBDIR: ${{ inputs.policies-subdir }}
+      POLICIES_GENERAL_DIR: ${{ inputs.policies-general-dir }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Install conftest
+        run: |
+          curl -LO https://github.com/open-policy-agent/conftest/releases/download/v0.68.2/conftest_0.68.2_Linux_x86_64.tar.gz
+          tar xzf conftest_0.68.2_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin/
+
+      - name: Run policy tests
+        run: |
+          # Get changed charts
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
+          
+          for chart in $CHANGED; do
+
+            echo "Updating dependencies for $chart"
+
+            helm dependency build $chart
+
+            if [ -d "$POLICIES_GENERAL_DIR" ]; then
+
+              echo "Testing general policies for $chart"
+
+              helm template test "$chart" | conftest test - --policy "$POLICIES_GENERAL_DIR"
+
+            fi
+
+            if [ -d "$chart/$POLICIES_SUBDIR" ]; then
+
+              echo "Testing policies for $chart"
+
+              helm template test "$chart" | conftest test - --policy "$chart/$POLICIES_SUBDIR"
+
+            fi
+
+          done
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run-integrationtests }}
+    needs: [unit-test, policy-test]
+    env:
+      CHART_TEST_CONFIGURATION_YAML: ${{ inputs.chart-test-yaml }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+
+      - name: List changed charts
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install and test charts
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct install --config $CHART_TEST_CONFIGURATION_YAML

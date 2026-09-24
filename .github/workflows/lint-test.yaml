@@ -9,176 +9,195 @@ on:
     paths:
       - 'charts/**'
       - '.github/workflows/lint-test.yaml'
+      - '.github/workflows/workflow.chart-tests.yaml'
   pull_request:
     paths:
       - 'charts/**'
       - '.github/workflows/lint-test.yaml'
+      - '.github/workflows/workflow.chart-tests.yaml'
 
 jobs:
-  lint:
-    name: Lint Charts
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
+  chart-tests:
+    uses: ./.github/workflows/workflow.chart-tests.yaml
+    with:
+      run-lint: true
+      run-template: true
+      run-unittests: true
+      run-policytests: true
+      run-integrationtests: true
+      charts-path: charts
+      chart-test-yaml: ct.yaml
+      templatevalues-subdir: .values
+      unittests-subdir: .unittests
+      unittests-filefilter: '*.unit.yaml'
+      policies-subdir: .policies
+      policies-general-dir: policies
 
-      - name: Set up Helm
-        uses: azure/setup-helm@v5
-        with:
-          version: v3.13.0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2
-
-      - name: List changed charts
-        id: list-changed
-        run: |
-          changed=$(ct list-changed --config ct.yaml)
-          if [[ -n "$changed" ]]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changed charts: $changed"
-          fi
-
-      - name: Lint charts
-        if: steps.list-changed.outputs.changed == 'true'
-        run: ct lint --config ct.yaml
-
-  templates:
-    name: Template Charts
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v5
-        with:
-          version: v3.13.0
-
-      - name: Template Changed Charts
-        env:
-          CHART_TESTVALUES_DIR: .values
-        run: |
-          # Get changed charts
-          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^charts/' | cut -d'/' -f2 | sort -u)
-          
-          for chart in $CHANGED; do
-            if [ -d "charts/$chart/$CHART_TESTVALUES_DIR" ]; then
-              echo "Testing values for $chart"
-              find charts/$chart/$CHART_TESTVALUES_DIR -maxdepth 1 -iname "*.yaml" -type f -print0 | xargs -0 -I{} /bin/sh -c \
-                "echo '########################### Values - {}';
-                helm dependency build charts/$chart;
-                helm template charts/$chart --debug  -f {}";
-            fi
-          done
-
-  unit-test:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v5
-
-      - name: Install helm-unittest
-        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --verify=false
-
-      - name: Run unit tests
-        env:
-          CHART_UNITTEST_DIR: .unittests
-        run: |
-          for chart in charts/*/; do
-            if [ -d "$chart/$CHART_UNITTEST_DIR" ]; then
-              echo "Testing $chart"
-              helm dependency build $chart
-              helm unittest "$chart" \
-                --file "$chart/$CHART_UNITTEST_DIR/*.unit.yaml" \
-                --output-file results.xml \
-                --output-type JUnit
-            fi
-          done
-
-      - name: Publish test results
-        uses: mikepenz/action-junit-report@v6
-        if: always()
-        with:
-          report_paths: '**/results.xml'
-
-  policy-test:
-    name: Policy Tests
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v5
-
-      - name: Install conftest
-        run: |
-          curl -LO https://github.com/open-policy-agent/conftest/releases/download/v0.68.2/conftest_0.68.2_Linux_x86_64.tar.gz
-          tar xzf conftest_0.68.2_Linux_x86_64.tar.gz
-          sudo mv conftest /usr/local/bin/
-
-      - name: Run policy tests
-        env:
-          CHART_POLICIES_DIR: .policy
-          GENERAL_POLICIES_DIR: policies
-        run: |
-          for chart in charts/*/; do
-            echo "Updating dependencies for $chart"
-            helm dependency build $chart
-            if [ -d "$GENERAL_POLICIES_DIR" ]; then
-              echo "Testing policies for $chart"
-              helm template test "$chart" | conftest test - --policy "$GENERAL_POLICIES_DIR"
-            fi
-            if [ -d "$chart/$CHART_POLICIES_DIR" ]; then
-              echo "Testing policies for $chart"
-              helm template test "$chart" | conftest test - --policy "$chart$CHART_POLICIES_DIR"
-            fi
-          done
-
-  integration-test:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [unit-test, policy-test]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v5
-
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2
-
-      - name: Create kind cluster
-        uses: helm/kind-action@v1
-
-      - name: List changed charts
-        id: list-changed
-        run: |
-          changed=$(ct list-changed --config ct.yaml)
-          if [[ -n "$changed" ]]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Install and test charts
-        if: steps.list-changed.outputs.changed == 'true'
-        run: ct install --config ct.yaml
+#jobs:
+#  lint:
+#    name: Lint Charts
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v7
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Set up Helm
+#        uses: azure/setup-helm@v5
+#        with:
+#          version: v3.13.0
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v6
+#        with:
+#          python-version: '3.11'
+#
+#      - name: Set up chart-testing
+#        uses: helm/chart-testing-action@v2
+#
+#      - name: List changed charts
+#        id: list-changed
+#        run: |
+#          changed=$(ct list-changed --config ct.yaml)
+#          if [[ -n "$changed" ]]; then
+#            echo "changed=true" >> $GITHUB_OUTPUT
+#            echo "Changed charts: $changed"
+#          fi
+#
+#      - name: Lint charts
+#        if: steps.list-changed.outputs.changed == 'true'
+#        run: ct lint --config ct.yaml
+#
+#  templates:
+#    name: Template Charts
+#    runs-on: ubuntu-latest
+#    needs: lint
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v7
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Set up Helm
+#        uses: azure/setup-helm@v5
+#        with:
+#          version: v3.13.0
+#
+#      - name: Template Changed Charts
+#        env:
+#          CHART_TESTVALUES_DIR: .values
+#        run: |
+#          # Get changed charts
+#          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^charts/' | cut -d'/' -f2 | sort -u)
+#          
+#          for chart in $CHANGED; do
+#            if [ -d "charts/$chart/$CHART_TESTVALUES_DIR" ]; then
+#              echo "Testing values for $chart"
+#              find charts/$chart/$CHART_TESTVALUES_DIR -maxdepth 1 -iname "*.yaml" -type f -print0 | xargs -0 -I{} /bin/sh -c \
+#                "echo '########################### Values - {}';
+#                helm dependency build charts/$chart;
+#                helm template charts/$chart --debug  -f {}";
+#            fi
+#          done
+#
+#  unit-test:
+#    name: Unit Tests
+#    runs-on: ubuntu-latest
+#    needs: lint
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v7
+#
+#      - name: Set up Helm
+#        uses: azure/setup-helm@v5
+#
+#      - name: Install helm-unittest
+#        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --verify=false
+#
+#      - name: Run unit tests
+#        env:
+#          CHART_UNITTEST_DIR: .unittests
+#        run: |
+#          for chart in charts/*/; do
+#            if [ -d "$chart/$CHART_UNITTEST_DIR" ]; then
+#              echo "Testing $chart"
+#              helm dependency build $chart
+#              helm unittest "$chart" \
+#                --file "$chart/$CHART_UNITTEST_DIR/*.unit.yaml" \
+#                --output-file results.xml \
+#                --output-type JUnit
+#            fi
+#          done
+#
+#      - name: Publish test results
+#        uses: mikepenz/action-junit-report@v6
+#        if: always()
+#        with:
+#          report_paths: '**/results.xml'
+#
+#  policy-test:
+#    name: Policy Tests
+#    runs-on: ubuntu-latest
+#    needs: lint
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v7
+#
+#      - name: Set up Helm
+#        uses: azure/setup-helm@v5
+#
+#      - name: Install conftest
+#        run: |
+#          curl -LO https://github.com/open-policy-agent/conftest/releases/download/v0.68.2/conftest_0.68.2_Linux_x86_64.tar.gz
+#          tar xzf conftest_0.68.2_Linux_x86_64.tar.gz
+#          sudo mv conftest /usr/local/bin/
+#
+#      - name: Run policy tests
+#        env:
+#          CHART_POLICIES_DIR: .policy
+#          GENERAL_POLICIES_DIR: policies
+#        run: |
+#          for chart in charts/*/; do
+#            echo "Updating dependencies for $chart"
+#            helm dependency build $chart
+#            if [ -d "$GENERAL_POLICIES_DIR" ]; then
+#              echo "Testing policies for $chart"
+#              helm template test "$chart" | conftest test - --policy "$GENERAL_POLICIES_DIR"
+#            fi
+#            if [ -d "$chart/$CHART_POLICIES_DIR" ]; then
+#              echo "Testing policies for $chart"
+#              helm template test "$chart" | conftest test - --policy "$chart$CHART_POLICIES_DIR"
+#            fi
+#          done
+#
+#  integration-test:
+#    name: Integration Tests
+#    runs-on: ubuntu-latest
+#    needs: [unit-test, policy-test]
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v7
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Set up Helm
+#        uses: azure/setup-helm@v5
+#
+#      - name: Set up chart-testing
+#        uses: helm/chart-testing-action@v2
+#
+#      - name: Create kind cluster
+#        uses: helm/kind-action@v1
+#
+#      - name: List changed charts
+#        id: list-changed
+#        run: |
+#          changed=$(ct list-changed --config ct.yaml)
+#          if [[ -n "$changed" ]]; then
+#            echo "changed=true" >> $GITHUB_OUTPUT
+#          fi
+#
+#      - name: Install and test charts
+#        if: steps.list-changed.outputs.changed == 'true'
+#        run: ct install --config ct.yaml
