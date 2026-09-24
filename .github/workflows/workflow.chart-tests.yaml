@@ -109,7 +109,7 @@ jobs:
         id: list-changed
         run: |
           changed=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
-          if [[ -n "$changed" ]]; thens
+          if [[ -n "$changed" ]]; then
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Changed charts: $changed"
           fi
@@ -143,13 +143,18 @@ jobs:
           CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
           for chart in $CHANGED; do
+
             if [ -d "$CHARTS_DIR/$chart/$estvalues-subdir }}" ]; then
+
               echo "Testing values for $chart"
+
               find $CHARTS_DIR/$chart/$TEMPLATE_VALUES_SUBDIR -maxdepth 1 -iname "*.yaml" -type f -print0 | xargs -0 -I{} /bin/sh -c \
                 "echo '########################### Values - {}';
                 helm dependency build $CHARTS_DIR/$chart;
                 helm template $CHARTS_DIR/$chart --debug  -f {}";
+
             fi
+
           done
 
   unit-test:
@@ -177,14 +182,20 @@ jobs:
           CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
           for chart in $CHANGED; do
+
             if [ -d "$chart/$UNITTEST_SUBDIR" ]; then
+
               echo "Testing $chart"
+
               helm dependency build $chart
+
               helm unittest "$chart" \
                 --file "$chart/$UNITTEST_SUBDIR/$UNITTEST_FILTER" \
                 --output-file result.$chart.xml \
                 --output-type JUnit
+
             fi
+            
           done
 
       - name: Publish test results
