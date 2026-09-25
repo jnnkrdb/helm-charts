@@ -1,0 +1,100 @@
+on:
+  workflow_call:
+    inputs:
+      charts-path:
+        description: |
+          This is the directory, in which the subdirectories are places, which contain the helm-charts. 
+          The directory would look like this 
+            -> 'charts/<chart-dir>/Chart.yaml' 
+          and the value would be 'charts'."
+        required: false
+        type: string
+        default: "charts"
+        
+      registry:
+        description: |
+          This is the registry, where the charts should be uploaded to. Default is ghcr.io.
+        required: false
+        type: string
+        default: "ghcr.io"
+      registry-username:
+        description: |
+          This is the user, which is used to authenticate against the given registry.
+        required: true
+        type: string
+      registry-repopath:
+        description: |
+          This is the path, under which the helmcahrts should be uploaded to. Default is "{{ github.repository_owner }}/helm-charts".
+        required: false
+        type: string
+        default: "${{ github.repository_owner }}/helm-charts"
+    secrets:
+      registry-password:
+        required: true
+
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      charts: ${{ steps.changes.outputs.charts }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed charts
+        id: changes
+        run: |
+          CHANGED_CHARTS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | \
+            grep '^${{ inputs.charts-path }}/' | \
+            cut -d'/' -f2 | \
+            sort -u | \
+            jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "$CHANGED_CHARTS"
+          echo "charts=$CHANGED_CHARTS" >> $GITHUB_OUTPUT
+
+  release:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.charts != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        chart: ${{ fromJson(needs.detect-changes.outputs.charts) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Login to Registry
+        run: |
+          echo "${{ secrets.registry-password }}" | helm registry login ${{ inputs.registry }} -u ${{ inputs.registry-username }} --password-stdin
+
+      - name: Get chart version
+        id: version
+        run: |
+          VERSION=$(grep '^version:' ${{ inputs.charts-path }}/${{ matrix.chart }}/Chart.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build dependencies
+        run: |
+          helm dependency build ${{ inputs.charts-path }}/${{ matrix.chart }}
+
+      - name: Package chart
+        run: |
+          helm package ${{ inputs.charts-path }}/${{ matrix.chart }}
+
+      - name: Push to Registry
+        run: |
+          helm push ${{ matrix.chart }}-${{ steps.version.outputs.version }}.tgz oci://${{ inputs.registry }}/${{ inputs.registry-repopath }}
+
+      - name: Sign with Cosign
+        run: |
+          cosign sign --yes ${{ inputs.registry }}/${{ inputs.registry-repopath }}/${{ matrix.chart }}:${{ steps.version.outputs.version }}
