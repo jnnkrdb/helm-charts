@@ -1,0 +1,343 @@
+---
+# Source: vaultwarden/templates/serviceaccount.yaml
+# --------------------------------------------------------------------------------- ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-release-name-vaultwarden
+  annotations:
+    
+  labels:
+    helm.sh/chart: vaultwarden-1.1.1
+    app.kubernetes.io/name: release-name-vaultwarden
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.37.4"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: vaultwarden/templates/backup/configmap.yaml
+# --------------------------------------------------------------------------------- ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: release-name-vaultwarden-backup-scripts
+  annotations:
+    
+  labels:
+    helm-charts.jnnkrdb.github.io/vaultwarden: "backup"
+    
+data:
+  vaultwarden.backup.sh: |-
+    #!/bin/sh
+    
+    # Creating a Backup of Vaultwarden Data
+    # the source directory can be configured via env vars
+    # if not set, then the default /data will be used
+    
+    _SOURCE="${VAULTWARDEN_DATA_DIR:-/data}"
+    _DESTINATION="${VAULTWARDEN_BACKUP_DIR:-/backup}"
+    _VERSION="${VAULTWARDEN_VERSION:-latest}"
+    
+    # print the configs
+    echo ""
+    echo "#########################################"
+    echo "################ Configs ################"
+    echo "#########################################"
+    echo "               date : $(date +"%Y-%m-%d")"
+    echo "               time : $(date +"%H-%M")"
+    echo "             source : ${_SOURCE}"
+    echo "        destination : ${_DESTINATION}"
+    echo "vaultwarden version : ${_VERSION}"
+    echo "#########################################"
+    
+    echo "Current state of existing backups:"
+    ls -lah ${_DESTINATION}
+    
+    _current="vw_${_VERSION}_bak_$(date +"%Y-%m-%d")"
+    # _current_bak="${_DESTINATION}/${_current}.tar.gz"
+    # _current_sha="${_current_bak}.sha256"
+    
+    # create the backup plus the sha256 sum
+    _tmp_bak="${_DESTINATION}/tmp.tar.gz"
+    tar -czvf "${_tmp_bak}" "${_SOURCE}"
+    sha256sum "${_DESTINATION}/${_tmp_bak}" > ${_tmp_bak}.sha256
+    # results in following
+    # /backup
+    # ├─ vw_1.36.0_bak_2025-01-31.tar.gz
+    # ├─ vw_1.36.0_bak_2025-01-31.tar.gz.sha256
+    # ├─ latest.tar.gz.info
+    # ├─ latest.tar.gz
+    # ├─ latest.tar.gz.sha256
+    # ├─ tmp.tar.gz           <- this one new
+    # └─ tmp.tar.gz.sha256    <- this one new
+    
+    # check whether there is already an latest backup or not
+    if [ ! -f "${_DESTINATION}/latest.tar.gz" ]; then
+      echo "Currently there is no existing latest backup. Creating..."
+    
+      # create the new latest backup from the tmp backup files
+      mv ${_DESTINATION}/tmp.tar.gz ${_DESTINATION}/latest.tar.gz 
+      mv ${_DESTINATION}/tmp.tar.gz.sha256 ${_DESTINATION}/latest.tar.gz.sha256 
+      echo "${_current}" > ${_DESTINATION}/latest.tar.gz.info
+    else
+      if [ "$(cat ${_tmp_bak}.sha256)" = "$(cat ${_DESTINATION}/latest.tar.gz.sha256)" ]; then
+        echo "The Backups Sha256 Sums do not differ, therefore there shouldn't be any differences."
+        rm -fR ${_tmp_bak} ${_tmp_bak}.sha256
+        exit 0
+      else
+        echo "The Backups Sha256 Sums do differ, therefore we have to create a new backup file +sha-sum + info-file."
+        
+        # move the current latest into the specified state
+        _latest_info="$(cat ${_DESTINATION}/latest.tar.gz.info)"
+        mv ${_DESTINATION}/latest.tar.gz ${_DESTINATION}/${_latest_info}.tar.gz 
+        mv ${_DESTINATION}/latest.tar.gz.sha256 ${_DESTINATION}/${_latest_info}.tar.gz.sha256 
+    
+        # create the new latest backup from the tmp backup files
+        mv ${_DESTINATION}/tmp.tar.gz ${_DESTINATION}/latest.tar.gz 
+        mv ${_DESTINATION}/tmp.tar.gz.sha256 ${_DESTINATION}/latest.tar.gz.sha256 
+        echo "${_current}" > ${_DESTINATION}/latest.tar.gz.info
+      fi
+    fi
+---
+# Source: vaultwarden/templates/backup/persistentvolumeclaim.yaml
+# --------------------------------------------------------------------------------- PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: release-name-vaultwarden-backup
+  annotations:
+    
+  labels:
+    helm-charts.jnnkrdb.github.io/vaultwarden: "backup"
+    helm.sh/chart: vaultwarden-1.1.1
+    app.kubernetes.io/name: release-name-vaultwarden
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.37.4"
+    app.kubernetes.io/managed-by: Helm
+    
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10Gi"
+---
+# Source: vaultwarden/templates/persistentvolumeclaim.yaml
+# --------------------------------------------------------------------------------- PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: release-name-vaultwarden-data
+  labels:
+    helm.sh/chart: vaultwarden-1.1.1
+    app.kubernetes.io/name: release-name-vaultwarden
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.37.4"
+    app.kubernetes.io/managed-by: Helm
+    
+  annotations:
+    
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10Gi"
+---
+# Source: vaultwarden/templates/service.yaml
+# --------------------------------------------------------------------------------- Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-vaultwarden
+  labels:
+    helm.sh/chart: vaultwarden-1.1.1
+    app.kubernetes.io/name: release-name-vaultwarden
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.37.4"
+    app.kubernetes.io/managed-by: Helm
+    
+  annotations:
+    
+spec:
+  type: ClusterIP
+  ports:
+    - name: "http"
+      protocol: TCP
+      targetPort: 80
+      port: 80
+    - name: "websocket"
+      protocol: TCP
+      targetPort: 3012
+      port: 3012
+  selector:
+    app.kubernetes.io/name: release-name-vaultwarden
+    app.kubernetes.io/instance: release-name
+---
+# Source: vaultwarden/templates/workload/deployment.yaml
+# --------------------------------------------------------------------------------- Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-vaultwarden
+  labels:
+    helm.sh/chart: vaultwarden-1.1.1
+    app.kubernetes.io/name: release-name-vaultwarden
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.37.4"
+    app.kubernetes.io/managed-by: Helm
+    
+  annotations:
+    
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  minReadySeconds: 10
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: release-name-vaultwarden
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      annotations:
+        
+      labels:
+        app.kubernetes.io/name: release-name-vaultwarden
+        app.kubernetes.io/instance: release-name
+        
+    spec:
+      
+      nodeSelector:
+        kubernetes.io/os: linux
+      
+      
+      
+      
+      
+      
+      
+      serviceAccountName: sa-release-name-vaultwarden
+      imagePullSecrets:
+        
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: release-name-vaultwarden-data
+      containers:
+        - name: vaultwarden
+          image: docker.io/vaultwarden/server:1.37.4
+          imagePullPolicy: "Always"
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
+          ports:
+            - name: "http"
+              containerPort: 80
+              protocol: TCP
+            - name: "websocket"
+              containerPort: 3012
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: "/data"
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          livenessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+---
+# Source: vaultwarden/templates/backup/cronjob.yaml
+# --------------------------------------------------------------------------------- CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: release-name-vaultwarden-backup
+  annotations:
+    
+  labels:
+    helm-charts.jnnkrdb.github.io/vaultwarden: "backup"
+    helm.sh/chart: vaultwarden-1.1.1
+    app.kubernetes.io/name: release-name-vaultwarden
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.37.4"
+    app.kubernetes.io/managed-by: Helm
+    
+spec:
+  concurrencyPolicy: "Forbid"
+  failedJobsHistoryLimit: 3
+  schedule: "0 */6 * * *"
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 2
+  timeZone: "Etc/UTC"
+  jobTemplate: 
+    spec:
+      parallelism: 1
+      template:
+        spec:        
+        nodeSelector:
+          kubernetes.io/os: linux
+        
+        
+        
+        
+        
+        
+        
+          serviceAccountName: sa-release-name-vaultwarden
+          imagePullSecrets:
+            
+          restartPolicy: "OnFailure"
+          volumes:
+            - name: scripts
+              configMap:
+                name: release-name-vaultwarden-backup-scripts
+            - name: data
+              persistentVolumeClaim:
+                claimName: release-name-vaultwarden-data
+            - name: backup
+              persistentVolumeClaim:
+                claimName: release-name-vaultwarden-backup
+          containers:
+            - name: vaultwardenbackup
+              image: docker.io/vaultwarden/server:1.37.4
+              imagePullPolicy: "Always"
+              command:
+                - /bin/sh
+              args:
+                - /scripts/vaultwarden.backup.sh
+              env:
+                - name: VAULTWARDEN_DATA_DIR
+                  value: "/data"
+                - name: VAULTWARDEN_BACKUP_DIR
+                  value: "/backups"
+                - name: VAULTWARDEN_VERSION
+                  value: "1.37.4"
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: data
+                  mountPath: "/data"
+                - name: backup
+                  mountPath: "/backups"
