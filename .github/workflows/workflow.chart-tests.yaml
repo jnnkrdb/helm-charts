@@ -100,9 +100,6 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2
 
-      - name: Create kind cluster
-        uses: helm/kind-action@v1
-
       - name: List changed charts
         id: list-changed
         run: |
@@ -177,21 +174,21 @@ jobs:
       - name: Template Changed Charts
         run: |
           # Get changed charts
-          CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
+          #CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
-          echo "${CHANGED}"
+          #echo "${CHANGED}"
           echo "${CHANGED_CHARTS}"
 
-          for chart in $CHANGED; do
+          for chart in $CHANGED_CHARTS; do
 
-            if [ -d "$CHARTS_DIR/$chart/$estvalues-subdir }}" ]; then
+            if [ -d "$chart/$TEMPLATE_VALUES_SUBDIR" ]; then
 
               echo "Testing values for $chart"
 
-              find $CHARTS_DIR/$chart/$TEMPLATE_VALUES_SUBDIR -maxdepth 1 -iname "*.yaml" -type f -print0 | xargs -0 -I{} /bin/sh -c \
+              find $chart/$TEMPLATE_VALUES_SUBDIR -maxdepth 1 -iname "*.yaml" -type f -print0 | xargs -0 -I{} /bin/sh -c \
                 "echo '########################### Values - {}';
-                helm dependency build $CHARTS_DIR/$chart;
-                helm template $CHARTS_DIR/$chart --debug  -f {}";
+                helm dependency build $chart;
+                helm template $chart --debug  -f {}";
 
             fi
 
