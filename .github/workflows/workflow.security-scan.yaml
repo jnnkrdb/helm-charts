@@ -74,6 +74,7 @@ jobs:
         run: |
           for chart in $CHANGED_CHARTS; do
             echo "Scanning $chart"
+            helm dependency update $chart
             helm template test "$chart" | kubesec scan -
           done
 
@@ -123,6 +124,7 @@ jobs:
           mkdir -p rendered
           for chart in $CHANGED_CHARTS; do
             name=$(basename "$chart")
+            helm dependency update $chart
             helm template test "$chart" > rendered/${name}.yaml
           done
 
