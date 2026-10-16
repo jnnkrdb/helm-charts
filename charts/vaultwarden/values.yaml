@@ -295,6 +295,8 @@ backup:
     shareProcessNamespace: null
     enableServiceLinks: null
 
+    restartPolicy: OnFailure
+
     # ------------- more frequently used configs
     labels: {}
     annotations: {}

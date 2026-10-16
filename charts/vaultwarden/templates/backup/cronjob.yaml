@@ -104,101 +104,105 @@ spec:
       {{- with $job.ttlSecondsAfterFinished }}
       ttlSecondsAfterFinished: {{ . }}
       {{- end }}
-      spec: 
-        {{- include "common.podSpec" ( dict "podSpec" $pod ) | indent 8 }}
-        serviceAccountName: sa-{{ include "common.fullname" . }}
-        imagePullSecrets:
-          {{- include "common.imagePullSecrets" ( 
-              dict "imagePullSecrets" (concat $global.imagePullSecrets
-                                              $pod.imagePullSecrets
-                                              $img.imagePullSecrets )) | nindent 10 }}
-        {{- with (concat $pod.initContainers) }}
-        initContainers:
-          {{- . | toYaml | nindent 10 }} 
-        {{- end }}
-        volumes:
-          {{- with ( concat $global.extraVolumes
-                            $pod.extraVolumes) }}
-          {{- . | toYaml | nindent 10 }}
+      template:
+        spec: 
+          {{- include "common.podSpec" ( dict "podSpec" $pod ) | indent 8 }}
+          serviceAccountName: sa-{{ include "common.fullname" . }}
+          imagePullSecrets:
+            {{- include "common.imagePullSecrets" ( 
+                dict "imagePullSecrets" (concat $global.imagePullSecrets
+                                                $pod.imagePullSecrets
+                                                $img.imagePullSecrets )) | nindent 12 }}
+          {{- with $pod.restartPolicy }}
+          restartPolicy: {{ . | quote }}
           {{- end }}
-          - name: scripts
-            configMap:
-              name: {{ include "common.fullname" . }}-backup-scripts
-          - name: data
-            {{- if $main.persistence.useHostpath }}
-            hostPath:
-              {{- $main.persistence.hostPath | toYaml | nindent 14 }}
-            {{- else  }}
-            persistentVolumeClaim:
-              claimName: {{ include "common.fullname" . }}-data
-            {{- end }}
-          - name: backup
-            {{- if $backup.persistence.enabled }}
-            {{- if $backup.persistence.useHostpath }}
-            hostPath:
-              {{- $backup.persistence.hostPath | toYaml | nindent 14 }}
-            {{- else  }}
-            persistentVolumeClaim:
-              claimName: {{ include "common.fullname" . }}-backup
-            {{- end }}
-            {{- else }}
-            emptyDir: {}
-            {{- end }}
-        containers:
-          {{- with (concat $pod.sidecarContainers) }}
-          {{- . | toYaml | nindent 10 }}
+          {{- with (concat $pod.initContainers) }}
+          initContainers:
+            {{- . | toYaml | nindent 12 }} 
           {{- end }}
-          - name: vaultwardenbackup
-            image: {{ include "common.image" ( dict "img" $img "ctx" $ ) }}
-            imagePullPolicy: {{ include "common.firstOf" (
-                                dict "items" ( list $global.imagePullPolicy 
-                                                    $img.imagePullPolicy )) }}
-            {{- with $ctr.command }}
-            command: 
-              {{- . | toYaml | nindent 14 }}
+          volumes:
+            {{- with ( concat $global.extraVolumes
+                              $pod.extraVolumes) }}
+            {{- . | toYaml | nindent 12 }}
             {{- end }}
-            {{- with $ctr.args }}
-            args: 
-              {{- . | toYaml | nindent 14 }}
-            {{- end }}
-            {{- with $ctr.securityContext }}
-            securityContext: 
-              {{- . | toYaml | nindent 14 }}
-            {{- end }}
-            {{- with $ctr.workingDir }}
-            workingDir: {{ . | quote }}
-            {{- end }}
-            {{- with $ctr.resources }}
-            resources:
-              {{- . | toYaml | nindent 14 }}
-            {{- end }}
-            env:
-              {{- with ( concat $ctr.extraEnvs 
-                                $pod.extraEnvs) }}
-              {{- . | toYaml | nindent 14 }}
+            - name: scripts
+              configMap:
+                name: {{ include "common.fullname" . }}-backup-scripts
+            - name: data
+              {{- if $main.persistence.useHostpath }}
+              hostPath:
+                {{- $main.persistence.hostPath | toYaml | nindent 16 }}
+              {{- else  }}
+              persistentVolumeClaim:
+                claimName: {{ include "common.fullname" . }}-data
               {{- end }}
-              - name: VAULTWARDEN_DATA_DIR
-                value: {{ $main.persistence.mountPath | quote }}
-              - name: VAULTWARDEN_BACKUP_DIR
-                value: {{ $backup.persistence.mountPath | quote }}
-              - name: VAULTWARDEN_VERSION
-                value: {{ $img.tag | quote }}
-            {{- with ( concat $ctr.extraEnvFrom 
-                              $pod.extraEnvFrom) }}
-            envFrom:
-              {{- . | toYaml | nindent 14 }}
-            {{- end }}
-            volumeMounts:
-              {{- with ( concat $ctr.extraVolumeMounts 
-                                $pod.extraVolumeMounts
-                                $global.extraVolumeMounts) }}
-              {{- . | toYaml | nindent 6 }}
+            - name: backup
+              {{- if $backup.persistence.enabled }}
+              {{- if $backup.persistence.useHostpath }}
+              hostPath:
+                {{- $backup.persistence.hostPath | toYaml | nindent 16 }}
+              {{- else  }}
+              persistentVolumeClaim:
+                claimName: {{ include "common.fullname" . }}-backup
               {{- end }}
-              - name: scripts
-                mountPath: /scripts
-              - name: data
-                mountPath: {{ $main.persistence.mountPath | quote }}
-              - name: backup
-                mountPath: {{ $backup.persistence.mountPath | quote }}
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
+          containers:
+            {{- with (concat $pod.sidecarContainers) }}
+            {{- . | toYaml | nindent 12 }}
+            {{- end }}
+            - name: vaultwardenbackup
+              image: {{ include "common.image" ( dict "img" $img "ctx" $ ) }}
+              imagePullPolicy: {{ include "common.firstOf" (
+                                  dict "items" ( list $global.imagePullPolicy 
+                                                      $img.imagePullPolicy )) }}
+              {{- with $ctr.command }}
+              command: 
+                {{- . | toYaml | nindent 16 }}
+              {{- end }}
+              {{- with $ctr.args }}
+              args: 
+                {{- . | toYaml | nindent 16 }}
+              {{- end }}
+              {{- with $ctr.securityContext }}
+              securityContext: 
+                {{- . | toYaml | nindent 16 }}
+              {{- end }}
+              {{- with $ctr.workingDir }}
+              workingDir: {{ . | quote }}
+              {{- end }}
+              {{- with $ctr.resources }}
+              resources:
+                {{- . | toYaml | nindent 16 }}
+              {{- end }}
+              env:
+                {{- with ( concat $ctr.extraEnvs 
+                                  $pod.extraEnvs) }}
+                {{- . | toYaml | nindent 16 }}
+                {{- end }}
+                - name: VAULTWARDEN_DATA_DIR
+                  value: {{ $main.persistence.mountPath | quote }}
+                - name: VAULTWARDEN_BACKUP_DIR
+                  value: {{ $backup.persistence.mountPath | quote }}
+                - name: VAULTWARDEN_VERSION
+                  value: {{ $img.tag | quote }}
+              {{- with ( concat $ctr.extraEnvFrom 
+                                $pod.extraEnvFrom) }}
+              envFrom:
+                {{- . | toYaml | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                {{- with ( concat $ctr.extraVolumeMounts 
+                                  $pod.extraVolumeMounts
+                                  $global.extraVolumeMounts) }}
+                {{- . | toYaml | nindent 6 }}
+                {{- end }}
+                - name: scripts
+                  mountPath: /scripts
+                - name: data
+                  mountPath: {{ $main.persistence.mountPath | quote }}
+                - name: backup
+                  mountPath: {{ $backup.persistence.mountPath | quote }}
 {{- end -}}
 {{- end -}}
