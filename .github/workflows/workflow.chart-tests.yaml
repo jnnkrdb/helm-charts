@@ -157,7 +157,6 @@ jobs:
     if: inputs.run-template && needs.detect.outputs.has_changed
     needs: [ lint, detect ]
     env:
-      CHARTS_DIR: ${{ inputs.charts-path }}
       TEMPLATE_VALUES_SUBDIR: ${{ inputs.templatevalues-subdir }}
       CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
     steps:
@@ -173,33 +172,23 @@ jobs:
 
       - name: Template Changed Charts
         run: |
-          # Get changed charts
-          #CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
-          
-          #echo "${CHANGED}"
-          echo "${CHANGED_CHARTS}"
-
           for chart in $CHANGED_CHARTS; do
-
             if [ -d "$chart/$TEMPLATE_VALUES_SUBDIR" ]; then
-
               echo "Testing values for $chart"
-
               find $chart/$TEMPLATE_VALUES_SUBDIR -maxdepth 1 -iname "*.yaml" -type f -print0 | xargs -0 -I{} /bin/sh -c \
                 "echo '########################### Values - {}';
                 helm dependency build $chart;
                 helm template $chart --debug  -f {}";
-
             fi
-
           done
 
   unit-test:
     name: Unit Tests
     runs-on: ubuntu-latest
-    if: ${{ inputs.run-unittests }}
-    needs: lint
+    if: inputs.run-unittests && needs.detect.outputs.has_changed
+    needs: [ lint, detect ]
     env:
+      CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
       CHARTS_DIR: ${{ inputs.charts-path }}
       UNITTEST_SUBDIR: ${{ inputs.unittests-subdir }}
       UNITTEST_FILTER: ${{ inputs.unittests-filefilter }}
@@ -215,26 +204,15 @@ jobs:
 
       - name: Run unit tests
         run: |
-          # Get changed charts
-          CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
-          
-          echo "${CHANGED}"
-
-          for chart in $CHANGED; do
-
+          for chart in $CHANGED_CHARTS; do
             if [ -d "$chart/$UNITTEST_SUBDIR" ]; then
-
               echo "Testing $chart"
-
               helm dependency build $chart
-
               helm unittest "$chart" \
                 --file "$chart/$UNITTEST_SUBDIR/$UNITTEST_FILTER" \
-                --output-file result.$chart.xml \
+                --output-file result.$(echo "$chart" | sed 's|/|-|g').xml \
                 --output-type JUnit
-
-            fi
-            
+            fi            
           done
 
       - name: Publish test results
@@ -246,10 +224,10 @@ jobs:
   policy-test:
     name: Policy Tests
     runs-on: ubuntu-latest
-    if: ${{ inputs.run-policytests }}
-    needs: lint
+    if: inputs.run-policytests && needs.detect.outputs.has_changed
+    needs: [ lint, detect ]
     env:
-      CHARTS_DIR: ${{ inputs.charts-path }}
+      CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
       POLICIES_SUBDIR: ${{ inputs.policies-subdir }}
       POLICIES_GENERAL_DIR: ${{ inputs.policies-general-dir }}
     steps:
@@ -267,40 +245,26 @@ jobs:
 
       - name: Run policy tests
         run: |
-          # Get changed charts
-          CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
-          
-          echo "${CHANGED}"
-
-          for chart in $CHANGED; do
-
+          for chart in $CHANGED_CHARTS; do
             echo "Updating dependencies for $chart"
-
             helm dependency build $chart
 
             if [ -d "$POLICIES_GENERAL_DIR" ]; then
-
               echo "Testing general policies for $chart"
-
               helm template test "$chart" | conftest test - --policy "$POLICIES_GENERAL_DIR"
-
             fi
 
             if [ -d "$chart/$POLICIES_SUBDIR" ]; then
-
               echo "Testing policies for $chart"
-
               helm template test "$chart" | conftest test - --policy "$chart/$POLICIES_SUBDIR"
-
             fi
-
           done
 
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
-    if: ${{ inputs.run-integrationtests }}
-    needs: [unit-test, policy-test]
+    if: inputs.run-integrationtests && needs.detect.outputs.has_changed
+    needs: [detect, unit-test, policy-test]
     env:
       CHART_TEST_CONFIGURATION_YAML: ${{ inputs.chart-test-yaml }}
     steps:
@@ -318,16 +282,5 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1
 
-      - name: List changed charts
-        id: list-changed
-        run: |
-          changed=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
-          
-          if [[ -n "$changed" ]]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changed charts: $changed"
-          fi
-
       - name: Install and test charts
-        if: steps.list-changed.outputs.changed == 'true'
         run: ct install --config $CHART_TEST_CONFIGURATION_YAML
