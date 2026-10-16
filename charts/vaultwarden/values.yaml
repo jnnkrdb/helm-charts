@@ -334,10 +334,3 @@ backup:
     hostPath:
       path: /var/tmp/vaultwarden-backups
       type: null
-
-  # backup rbac configuration
-  rbac:
-    serviceAccount:
-      annotations: {}
-      labels: {}
-      automountServiceAccountToken: null
