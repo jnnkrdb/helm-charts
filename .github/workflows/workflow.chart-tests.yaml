@@ -189,7 +189,6 @@ jobs:
     needs: [ lint, detect ]
     env:
       CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
-      CHARTS_DIR: ${{ inputs.charts-path }}
       UNITTEST_SUBDIR: ${{ inputs.unittests-subdir }}
       UNITTEST_FILTER: ${{ inputs.unittests-filefilter }}
     steps:
@@ -210,7 +209,7 @@ jobs:
               helm dependency build $chart
               helm unittest "$chart" \
                 --file "$chart/$UNITTEST_SUBDIR/$UNITTEST_FILTER" \
-                --output-file result.$(echo "$chart" | sed 's|/|-|g').xml \
+                --output-file result.$(basename "$chart").xml \
                 --output-type JUnit
             fi            
           done

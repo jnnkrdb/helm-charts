@@ -1,32 +1,69 @@
 on:
   workflow_call:
     inputs:
-      charts-path:
+      chart-test-yaml:
         description: |
-          This is the directory, in which the subdirectories are places, which contain the helm-charts. 
-          The directory would look like this 
-            -> 'charts/<chart-dir>/Chart.yaml' 
-          and the value would be 'charts'."
-        required: false
+          This variable holds the path to the required chart-test configuration yaml. 
+          Most of the times its stored under the root path of a repository as ct.yaml.
+        required: true
         type: string
-        default: "charts"
+      #charts-path:
+      #  description: |
+      #    This is the directory, in which the subdirectories are places, which contain the helm-charts. 
+      #    The directory would look like this 
+      #      -> 'charts/<chart-dir>/Chart.yaml' 
+      #    and the value would be 'charts'."
+      #  required: false
+      #  type: string
+      #  default: "charts"
 
 jobs:
-  bump:
-    if: (github.event.label.name == 'version:patch' || github.event.label.name == 'version:minor' || github.event.label.name == 'version:major') && github.event_name == 'pull_request'
+  detect:
+    name: Detect changed Charts
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     env:
-      CHARTS_DIR: ${{ inputs.charts-path }}
+      CHART_TEST_CONFIGURATION_YAML: ${{ inputs.chart-test-yaml }}
+    outputs:
+      has_changed: ${{ steps.list-changed.outputs.has_changed }}
+      changed_charts: ${{ steps.list-changed.outputs.changed_charts }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      #- uses: actions/checkout@v7
-      #  with:
-      #    ref: ${{ github.head_ref }}
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2
+
+      - name: List changed charts
+        id: list-changed
+        run: |
+          changed_charts=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
+          if [[ -n "$changed_charts" ]]; then
+            echo "Changed charts: $changed_charts"
+            echo "has_changed=true" >> $GITHUB_OUTPUT
+            echo "changed_charts=$changed_charts" >> $GITHUB_OUTPUT
+          fi
+
+  bump:
+    runs-on: ubuntu-latest
+    needs: detect
+    if: >-
+        (github.event.label.name == 'version:patch' || github.event.label.name == 'version:minor' || github.event.label.name == 'version:major') && 
+        github.event_name == 'pull_request' && 
+        needs.detect.outputs.has_changed
+    permissions:
+      contents: write
+    env:
+      CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Determine bump type
         id: bump
@@ -39,41 +76,26 @@ jobs:
 
       - name: Bump versions
         run: |
-          # Find changed charts
-          CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
-          
-          echo "${CHANGED}"
-
-          for chart in $CHANGED; do
-
-            if [ -f "$CHARTS_DIR/$chart/Chart.yaml" ]; then
-
-              CURRENT=$(grep '^version:' $CHARTS_DIR/$chart/Chart.yaml | awk '{print $2}')
-
-              IFS='.' read -r major minor patch <<< "$CURRENT"
-              
+          for chart in $CHANGED_CHARTS; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              CURRENT=$(grep '^version:' $chart/Chart.yaml | awk '{print $2}')
+              IFS='.' read -r major minor patch <<< "$CURRENT"              
               case "${{ steps.bump.outputs.type }}" in
-
                 patch) NEW="$major.$minor.$((patch + 1))" ;;
-
                 minor) NEW="$major.$((minor + 1)).0" ;;
-
                 major) NEW="$((major + 1)).0.0" ;;
-
-              esac
-              
-              sed -i "s/^version: .*/version: $NEW/" $CHARTS_DIR/$chart/Chart.yaml
-
+              esac              
+              sed -i "s/^version: .*/version: $NEW/" $chart/Chart.yaml
               echo "Bumped $chart from $CURRENT to $NEW"
-
             fi
-
           done
 
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add $CHARTS_DIR/*/Chart.yaml
+          for chart in $CHANGED_CHARTS; do
+            git add $chart/Chart.yaml
+          done          
           git commit -m "chore: bump chart versions [${{ steps.bump.outputs.type }}]"
           git push origin HEAD:${{ github.head_ref }}
