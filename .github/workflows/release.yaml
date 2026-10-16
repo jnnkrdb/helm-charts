@@ -13,6 +13,9 @@ on:
 jobs:
   release:
     uses: ./.github/workflows/workflow.release.yaml
+    permissions:
+      contents: write
+      pages: write
     with:
       charts-path: charts
     secrets:

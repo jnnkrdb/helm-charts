@@ -18,6 +18,8 @@ on:
 jobs:
   chart-tests:
     uses: ./.github/workflows/workflow.security-scan.yaml
+    permissions:
+      security-events: read
     with:
       charts-path: charts
       chart-test-yaml: ct.yaml
