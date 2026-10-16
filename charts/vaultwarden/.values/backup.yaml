@@ -1,0 +1,6 @@
+persistence:
+  enabled: true
+backup:
+  enabled: true
+  persistence:
+    enabled: true

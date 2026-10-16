@@ -1,0 +1,204 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+
+{{- $img := $v.images.vaultwarden -}}
+
+{{- $main := $v -}}
+
+{{- $backup := $v.backup -}}
+{{- $cjob := $backup.cronjob -}}
+{{- $job := $backup.job -}}
+{{- $pod := $backup.pod -}}
+{{- $ctr := $backup.containers.vaultwardenbackup -}}
+
+{{- if $backup.enabled -}}
+{{- if $main.persistence.enabled }}
+--- # --------------------------------------------------------------------------------- CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "common.fullname" . }}-backup
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $backup.annotations ) ) | nindent 4 }}
+  labels:
+    helm-charts.jnnkrdb.github.io/vaultwarden: "backup"
+    {{- include "common.defaultLabels" . | nindent 4 }}
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $backup.labels ) ) | nindent 4 }}
+spec:
+  {{- with $cjob.concurrencyPolicy }}
+  concurrencyPolicy: {{ . | quote }}
+  {{- end }}
+  {{- with $cjob.failedJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with $cjob.schedule }}
+  schedule: {{ . | quote }}
+  {{- end }}
+  {{- with $cjob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ . }}
+  {{- end }}
+  {{- with $cjob.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with $cjob.suspend }}
+  suspend: {{ . }}
+  {{- end }}
+  {{- with $cjob.timeZone }}
+  timeZone: {{ . | quote }}
+  {{- end }}
+  jobTemplate: 
+    spec:
+      {{- with $job.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ . }}
+      {{- end }}
+      {{- with $job.backoffLimit }}
+      backoffLimit: {{ . }}
+      {{- end }}
+      {{- with $job.backoffLimitPerIndex }}
+      backoffLimitPerIndex: {{ . }}
+      {{- end }}
+      {{- with $job.completionMode }}
+      completionMode: {{ . | quote }}
+      {{- end }}
+      {{- with $job.completions }}
+      completions: {{ . }}
+      {{- end }}
+      {{- with $job.managedBy }}
+      managedBy: {{ . | quote }}
+      {{- end }}
+      {{- with $job.manualSelector }}
+      manualSelector: {{ . }}
+      {{- end }}
+      {{- with $job.maxFailedIndexes }}
+      maxFailedIndexes: {{ . }}
+      {{- end }}
+      {{- with $job.parallelism }}
+      parallelism: {{ . }}
+      {{- end }}
+      {{- with $job.podFailurePolicy }}
+      podFailurePolicy: 
+        {{ . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with $job.podReplacementPolicy }}
+      podReplacementPolicy: {{ . | quote }}
+      {{- end }}
+      {{- with $job.scheduling }}
+      scheduling: 
+        {{ . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with $job.selector }}
+      selector: 
+        {{ . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with $job.successPolicy }}
+      successPolicy: 
+        {{ . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with $job.suspend }}
+      suspend: {{ . }}
+      {{- end }}
+      {{- with $job.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ . }}
+      {{- end }}
+      spec: 
+        {{- include "common.podSpec" ( dict "podSpec" $pod ) | indent 8 }}
+        serviceAccountName: sa-{{ include "common.fullname" . }}
+        imagePullSecrets:
+          {{- include "common.imagePullSecrets" ( 
+              dict "imagePullSecrets" (concat $global.imagePullSecrets
+                                              $pod.imagePullSecrets
+                                              $img.imagePullSecrets )) | nindent 10 }}
+        {{- with (concat $pod.initContainers) }}
+        initContainers:
+          {{- . | toYaml | nindent 10 }} 
+        {{- end }}
+        volumes:
+          {{- with ( concat $global.extraVolumes
+                            $pod.extraVolumes) }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+          - name: scripts
+            configMap:
+              name: {{ include "common.fullname" . }}-backup-scripts
+          - name: data
+            {{- if $main.persistence.useHostpath }}
+            hostPath:
+              {{- $main.persistence.hostPath | toYaml | nindent 14 }}
+            {{- else  }}
+            persistentVolumeClaim:
+              claimName: {{ include "common.fullname" . }}-data
+            {{- end }}
+          - name: backup
+            {{- if $backup.persistence.enabled }}
+            {{- if $backup.persistence.useHostpath }}
+            hostPath:
+              {{- $backup.persistence.hostPath | toYaml | nindent 14 }}
+            {{- else  }}
+            persistentVolumeClaim:
+              claimName: {{ include "common.fullname" . }}-backup
+            {{- end }}
+            {{- else }}
+            emptyDir: {}
+            {{- end }}
+        containers:
+          {{- with (concat $pod.sidecarContainers) }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+          - name: vaultwardenbackup
+            image: {{ include "common.image" ( dict "img" $img "ctx" $ ) }}
+            imagePullPolicy: {{ include "common.firstOf" (
+                                dict "items" ( list $global.imagePullPolicy 
+                                                    $img.imagePullPolicy )) }}
+            {{- with $ctr.command }}
+            command: 
+              {{- . | toYaml | nindent 14 }}
+            {{- end }}
+            {{- with $ctr.args }}
+            args: 
+              {{- . | toYaml | nindent 14 }}
+            {{- end }}
+            {{- with $ctr.securityContext }}
+            securityContext: 
+              {{- . | toYaml | nindent 14 }}
+            {{- end }}
+            {{- with $ctr.workingDir }}
+            workingDir: {{ . | quote }}
+            {{- end }}
+            {{- with $ctr.resources }}
+            resources:
+              {{- . | toYaml | nindent 14 }}
+            {{- end }}
+            env:
+              {{- with ( concat $ctr.extraEnvs 
+                                $pod.extraEnvs) }}
+              {{- . | toYaml | nindent 14 }}
+              {{- end }}
+              - name: VAULTWARDEN_DATA_DIR
+                value: {{ $main.persistence.mountPath | quote }}
+              - name: VAULTWARDEN_BACKUP_DIR
+                value: {{ $backup.persistence.mountPath | quote }}
+              - name: VAULTWARDEN_VERSION
+                value: {{ $img.tag | quote }}
+            {{- with ( concat $ctr.extraEnvFrom 
+                              $pod.extraEnvFrom) }}
+            envFrom:
+              {{- . | toYaml | nindent 14 }}
+            {{- end }}
+            volumeMounts:
+              {{- with ( concat $ctr.extraVolumeMounts 
+                                $pod.extraVolumeMounts
+                                $global.extraVolumeMounts) }}
+              {{- . | toYaml | nindent 6 }}
+              {{- end }}
+              - name: scripts
+                mountPath: /scripts
+              - name: data
+                mountPath: {{ $main.persistence.mountPath | quote }}
+              - name: backup
+                mountPath: {{ $backup.persistence.mountPath | quote }}
+{{- end -}}
+{{- end -}}
