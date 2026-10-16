@@ -551,6 +551,32 @@ entries:
     version: 1.0.0
   vaultwarden:
   - apiVersion: v2
+    appVersion: 1.37.4
+    created: "2026-10-16T22:15:57.75052031Z"
+    dependencies:
+    - name: common
+      repository: https://jnnkrdb.github.io/helm-charts
+      version: 1.0.1
+    description: A Helm chart for deploying Vaultwarden.
+    digest: 1bb00353b93a8bc41b1381deff4d0aba3ad7534fb4356fe520063e9aadfffa8c
+    home: https://github.com/jnnkrdb/helm-charts
+    keywords:
+    - vaultwarden
+    - password
+    - manager
+    - passwordsafe
+    - vault
+    - bitwarden
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: jnnkrdb
+      url: https://github.com/jnnkrdb
+    name: vaultwarden
+    type: application
+    urls:
+    - https://github.com/jnnkrdb/helm-charts/releases/download/vaultwarden-1.1.0/vaultwarden-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: 1.36.0
     created: "2026-06-22T09:54:31.572651531Z"
     dependencies:
@@ -676,4 +702,4 @@ entries:
     urls:
     - https://github.com/jnnkrdb/helm-charts/releases/download/zotregistry-1.0.0/zotregistry-1.0.0.tgz
     version: 1.0.0
-generated: "2026-07-10T07:53:00.301886267Z"
+generated: "2026-10-16T22:15:57.750565716Z"
