@@ -106,7 +106,7 @@ spec:
       {{- end }}
       template:
         spec: 
-          {{- include "common.podSpec" ( dict "podSpec" $pod ) | indent 8 }}
+          {{- include "common.podSpec" ( dict "podSpec" $pod ) | indent 10 }}
           serviceAccountName: sa-{{ include "common.fullname" . }}
           imagePullSecrets:
             {{- include "common.imagePullSecrets" ( 
