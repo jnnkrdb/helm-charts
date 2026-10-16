@@ -80,8 +80,8 @@ on:
         default: "policies"
 
 jobs:
-  calculate:
-    name: Calculate changed Charts
+  detect:
+    name: Detect changed Charts
     runs-on: ubuntu-latest
     env:
       CHART_TEST_CONFIGURATION_YAML: ${{ inputs.chart-test-yaml }}
@@ -117,11 +117,11 @@ jobs:
   lint:
     name: Lint Charts
     runs-on: ubuntu-latest
-    if: inputs.run-lint && needs.calculate.outputs.has_changed
-    needs: calculate
+    if: inputs.run-lint && needs.detect.outputs.has_changed
+    needs: detect
     env:
       CHART_TEST_CONFIGURATION_YAML: ${{ inputs.chart-test-yaml }}
-      CHANGED_CHARTS: ${{ needs.calculate.outputs.changed_charts }}
+      CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -157,12 +157,12 @@ jobs:
   templates:
     name: Template Charts
     runs-on: ubuntu-latest
-    if: inputs.run-template && needs.calculate.outputs.has_changed
-    needs: [ lint, calculate ]
+    if: inputs.run-template && needs.detect.outputs.has_changed
+    needs: [ lint, detect ]
     env:
       CHARTS_DIR: ${{ inputs.charts-path }}
       TEMPLATE_VALUES_SUBDIR: ${{ inputs.templatevalues-subdir }}
-      CHANGED_CHARTS: ${{ needs.calculate.outputs.changed_charts }}
+      CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
