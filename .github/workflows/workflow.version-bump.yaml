@@ -42,6 +42,8 @@ jobs:
           # Find changed charts
           CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
+          echo "${CHANGED}"
+
           for chart in $CHANGED; do
 
             if [ -f "$CHARTS_DIR/$chart/Chart.yaml" ]; then

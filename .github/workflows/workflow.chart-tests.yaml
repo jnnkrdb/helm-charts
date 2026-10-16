@@ -109,6 +109,9 @@ jobs:
         id: list-changed
         run: |
           changed=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
+          
+          echo "${changed}"
+
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Changed charts: $changed"
@@ -142,6 +145,8 @@ jobs:
           # Get changed charts
           CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
+          echo "${CHANGED}"
+
           for chart in $CHANGED; do
 
             if [ -d "$CHARTS_DIR/$chart/$estvalues-subdir }}" ]; then
@@ -181,6 +186,8 @@ jobs:
           # Get changed charts
           CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
+          echo "${CHANGED}"
+
           for chart in $CHANGED; do
 
             if [ -d "$chart/$UNITTEST_SUBDIR" ]; then
@@ -231,6 +238,8 @@ jobs:
           # Get changed charts
           CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
+          echo "${CHANGED}"
+
           for chart in $CHANGED; do
 
             echo "Updating dependencies for $chart"
@@ -281,6 +290,9 @@ jobs:
         id: list-changed
         run: |
           changed=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
+          
+          echo "${changed}"
+
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
