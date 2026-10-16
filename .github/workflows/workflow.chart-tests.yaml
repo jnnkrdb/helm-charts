@@ -140,7 +140,7 @@ jobs:
       - name: Template Changed Charts
         run: |
           # Get changed charts
-          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
+          CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
           for chart in $CHANGED; do
 
@@ -179,7 +179,7 @@ jobs:
       - name: Run unit tests
         run: |
           # Get changed charts
-          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
+          CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
           for chart in $CHANGED; do
 
@@ -229,7 +229,7 @@ jobs:
       - name: Run policy tests
         run: |
           # Get changed charts
-          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
+          CHANGED=$(git diff --name-only origin/main..HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
           
           for chart in $CHANGED; do
 
