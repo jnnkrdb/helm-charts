@@ -1,6 +1,12 @@
 on:
   workflow_call:
     inputs:
+      chart-test-yaml:
+        description: |
+          This variable holds the path to the required chart-test configuration yaml. 
+          Most of the times its stored under the root path of a repository as ct.yaml.
+        required: true
+        type: string
       charts-path:
         description: |
           This is the directory, in which the subdirectories are places, which contain the helm-charts. 
@@ -12,11 +18,44 @@ on:
         default: "charts"
 
 jobs:
+  detect:
+    name: Detect changed Charts
+    runs-on: ubuntu-latest
+    env:
+      CHART_TEST_CONFIGURATION_YAML: ${{ inputs.chart-test-yaml }}
+    outputs:
+      has_changed: ${{ steps.list-changed.outputs.has_changed }}
+      changed_charts: ${{ steps.list-changed.outputs.changed_charts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2
+
+      - name: List changed charts
+        id: list-changed
+        run: |
+          changed_charts=$(ct list-changed --config $CHART_TEST_CONFIGURATION_YAML)
+          
+          if [[ -n "$changed_charts" ]]; then
+            echo "Changed charts: $changed_charts"
+            echo "has_changed=true" >> $GITHUB_OUTPUT
+            echo "changed_charts=$changed_charts" >> $GITHUB_OUTPUT
+          fi
+
   kubesec:
     name: Kubesec Scan
     runs-on: ubuntu-latest
+    if: needs.detect.outputs.has_changed
+    needs: detect
     env:
-      CHARTS_DIR: ${{ inputs.charts-path }}
+      CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -33,10 +72,7 @@ jobs:
 
       - name: Scan charts
         run: |
-          # Find changed charts
-          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
-          
-          for chart in $CHANGED; do
+          for chart in $CHANGED_CHARTS; do
             echo "Scanning $chart"
             helm template test "$chart" | kubesec scan -
           done
@@ -72,8 +108,10 @@ jobs:
   checkov:
     name: Checkov Scan
     runs-on: ubuntu-latest
+    if: needs.detect.outputs.has_changed
+    needs: detect
     env:
-      CHARTS_DIR: ${{ inputs.charts-path }}
+      CHANGED_CHARTS: ${{ needs.detect.outputs.changed_charts }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -84,11 +122,8 @@ jobs:
 
       - name: Template charts
         run: |
-          # Find changed charts
-          CHANGED=$(git diff --name-only origin/main...HEAD | grep '^$CHARTS_DIR/' | cut -d'/' -f2 | sort -u)
-          
           mkdir -p rendered
-          for chart in $CHANGED; do
+          for chart in $CHANGED_CHARTS; do
             name=$(basename "$chart")
             helm template test "$chart" > rendered/${name}.yaml
           done

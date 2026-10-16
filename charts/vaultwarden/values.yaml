@@ -24,7 +24,7 @@ images:
   vaultwarden:
     registry: docker.io
     repository: vaultwarden/server
-    tag: 1.36.0
+    tag: 1.37.4
     digest: null
     imagePullPolicy: Always
     imagePullSecrets: []
@@ -34,7 +34,6 @@ images:
 workload:
   annotations: {}
   labels: {}
-  # supports either Deployment, StatefulSet or DaemonSet
   kind: Deployment
   revisionHistoryLimit: 1
   replicaCount: 1
@@ -199,7 +198,7 @@ pdb:
 # --------------------------------------------------------------------------------------------------
 # HORIZONTAL POD AUTOSCALER CONFIGURATION
 hpa:
-  enabled: true
+  enabled: false
   annotations: {}
   labels: {}
   minReplicas: 1
@@ -225,3 +224,115 @@ rbac:
     annotations: {}
     labels: {}
     automountServiceAccountToken: null
+
+# --------------------------------------------------------------------------------------------------
+# BACKUP CONFIGURATION
+backup:
+  enabled: false
+  labels: {}
+  annotations: {}
+
+  # general cronjob configs
+  cronjob:
+    concurrencyPolicy: Forbid
+    failedJobsHistoryLimit: 3
+    # The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
+    schedule: "0 */6 * * *"
+    startingDeadlineSeconds: 300
+    successfulJobsHistoryLimit: 2
+    suspend: false
+    timeZone: "Etc/UTC"
+
+  # job configurations
+  job:
+    activeDeadlineSeconds: null
+    backoffLimit: null
+    backoffLimitPerIndex: null
+    completionMode: null
+    completions: null
+    managedBy: null
+    manualSelector: null
+    maxFailedIndexes: null
+    parallelism: 1
+    podFailurePolicy: {}
+    podReplacementPolicy: null
+    scheduling: {}
+    selector: {}
+    successPolicy: {}
+    suspend: null
+    ttlSecondsAfterFinished: null
+
+  # pod configurations
+  pod:
+    # ------------- more advanced configs
+    # Scheduling constraints
+    affinity: {}
+    tolerations: []
+    nodeSelector:
+      kubernetes.io/os: linux
+
+    # Network
+    hostNetwork: null
+    dnsPolicy: null
+    dnsConfig: {}
+    hostAliases: []
+
+    nodeName: null
+    hostname: null
+    subdomain: null
+    automountServiceAccountToken: null
+    terminationGracePeriodSeconds: null
+
+    # Pod-level security context (applies to all containers unless container-level overrides)
+    securityContext: {}
+
+    # Runtime, priority, scheduler
+    runtimeClassName: null
+    priorityClassName: null
+    schedulerName: null
+
+    # Process & service-related settings
+    shareProcessNamespace: null
+    enableServiceLinks: null
+
+    # ------------- more frequently used configs
+    labels: {}
+    annotations: {}
+    imagePullSecrets: []
+    initContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    sidecarContainers: []
+    extraEnvs: []
+    extraEnvFrom: []
+
+  # container configurations
+  containers:
+    vaultwardenbackup:
+      command:
+      - /bin/sh
+      args:
+      - /scripts/vaultwarden.backup.sh
+      workingDir: null
+      resources: {}
+      securityContext: {}
+      extraEnvs: []
+      extraEnvFrom: []
+      extraVolumeMounts: []
+
+  persistence:
+    enabled: false
+    useHostpath: false
+    mountPath: /backups
+    pvc:
+      annotations: {}
+      labels: {}
+      accessModes:
+      - ReadWriteOnce
+      size: 10Gi
+      storageClassName: null
+      volumeName: null
+      volumeMode: null
+    hostPath:
+      path: /var/tmp/vaultwarden-backups
+      type: null

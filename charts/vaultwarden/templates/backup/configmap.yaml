@@ -1,0 +1,31 @@
+{{- $v := .Values -}}
+{{- $global := $v.global -}}
+{{- $img := $v.images.vaultwarden -}}
+
+{{- $main := $v -}}
+{{- $backup := $v.backup -}}
+
+{{- if $backup.enabled -}}
+--- # --------------------------------------------------------------------------------- ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: {{ include "common.fullname" . }}-backup-scripts
+  annotations:
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.annotations 
+                          $v.annotations
+                          $backup.annotations ) ) | nindent 4 }}
+  labels:
+    helm-charts.jnnkrdb.github.io/vaultwarden: "backup"
+    {{- include "common.keyValues" ( 
+        dict "kvs" ( list $global.labels 
+                          $v.labels
+                          $backup.labels ) ) | nindent 4 }}
+data:
+  {{- $files := (.Files.Glob "scripts/*.sh") }}
+  {{- range tuple "vaultwarden.backup.sh" }}
+  {{ . }}: |-
+    {{- $files.Get (printf "scripts/%s" . ) | nindent 4 }}
+  {{- end }}
+{{- end -}}
