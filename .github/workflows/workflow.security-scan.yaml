@@ -82,8 +82,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: read
-    env:
-      CHARTS_DIR: ${{ inputs.charts-path }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -96,7 +94,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
-          scan-ref: '$CHARTS_DIR/'
+          scan-ref: '${{ inputs.charts-path }}/'
           format: 'sarif'
           output: 'trivy-results.sarif'
 
