@@ -12,6 +12,9 @@ on:
 jobs:
   release-all:
     uses: ./.github/workflows/workflow.release-all.yaml
+    permissions:
+      contents: read
+      packages: write
     with:
       #charts-path: charts
       chart-test-yaml: ct.yaml
