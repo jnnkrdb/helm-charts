@@ -237,7 +237,7 @@ backup:
     concurrencyPolicy: Forbid
     failedJobsHistoryLimit: 3
     # The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
-    schedule: "0 */6 * * *" # every 6h
+    schedule: "0 */6 * * *"
     startingDeadlineSeconds: 300
     successfulJobsHistoryLimit: 2
     suspend: false
@@ -309,8 +309,10 @@ backup:
   # container configurations
   containers:
     vaultwardenbackup:
-      command: [ /bin/sh ]
-      args: [ /scripts/vaultwarden.backup.sh ]
+      command:
+      - /bin/sh
+      args:
+      - /scripts/vaultwarden.backup.sh
       workingDir: null
       resources: {}
       securityContext: {}
